@@ -55,7 +55,7 @@ export default function App() {
       tween.kill();
       ScrollTrigger.getAll().forEach((t) => t.kill());
     };
-  }, []);
+  }, [isSceneReady]);
 
   // Intro overlay opacity — driven by scroll progress in 'idle'
   useEffect(() => {
