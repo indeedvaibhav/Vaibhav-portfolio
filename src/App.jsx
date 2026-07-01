@@ -36,6 +36,8 @@ export default function App() {
   const scrollRef = useRef(null);
   const [introOpacity, setIntroOpacity] = useState(1);
 
+  const isSceneReady = phase === 'intro' || phase === 'transition' || phase === 'idle';
+
   // Set up GSAP ScrollTrigger → scrollState.progress (only meaningful in 'idle')
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -72,8 +74,6 @@ export default function App() {
     raf = requestAnimationFrame(update);
     return () => cancelAnimationFrame(raf);
   }, []);
-
-  const isSceneReady = phase === 'intro' || phase === 'transition' || phase === 'idle';
 
   return (
     <>
