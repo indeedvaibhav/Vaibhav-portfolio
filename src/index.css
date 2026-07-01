@@ -537,24 +537,24 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .detail-panel {
   position: fixed; inset: 0; z-index: 200;
   display: flex;
-  justify-content: flex-end;
+  align-items: center; justify-content: center;
 }
 .panel-backdrop {
   position: absolute; inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   cursor: pointer;
 }
 .detail-content {
   position: relative; z-index: 1;
-  width: 420px; max-width: 100vw;
-  height: 100%;
+  width: 100%; max-width: 500px;
+  max-height: 85vh;
   background: var(--bg-panel);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid var(--bg-panel-border);
   overflow-y: auto; overflow-x: hidden;
-  padding: var(--space-2xl) var(--space-xl);
+  padding: var(--space-xl);
   display: flex; flex-direction: column; gap: var(--space-lg);
+  border-radius: inherit; /* inherit from GlareHover */
 }
 .detail-content::-webkit-scrollbar { width: 3px; }
 .detail-content::-webkit-scrollbar-track { background: transparent; }
@@ -726,11 +726,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   }
   .caption-title { font-size: 24px; }
 
-  .detail-content {
-    width: 100vw;
-    border-left: none;
-    padding: var(--space-xl) var(--space-md);
-  }
+
   .panel-title { font-size: 22px; }
 
   .hud-readout { bottom: var(--space-md); left: var(--space-md); }
@@ -742,5 +738,4 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
-  .detail-content { width: 50vw; }
 }
