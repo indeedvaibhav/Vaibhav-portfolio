@@ -1,0 +1,152 @@
+import { ASTEROID_POSITIONS } from '../utils/constants';
+
+export const achievements = [
+  {
+    id: 'railsage',
+    title: 'RailSage AI',
+    category: 'AI Project',
+    color: '#6366f1',
+    description:
+      'An AI-powered travel assistant for Indian Railways, built during a hackathon alongside teammate Aditya Dixit. Leverages Claude AI to help passengers plan routes, check PNR status, and get real-time journey insights — all through natural conversation.',
+    summary: 'AI assistant for Indian Railways, built with Claude AI',
+    details: {
+      role: 'Co-Developer',
+      stack: 'Claude AI, React, Node.js, Vercel',
+      period: '2024',
+      status: 'Live',
+    },
+    tags: ['ai', 'hackathon', 'claude', 'nlp'],
+    links: { live: 'https://railsage-ai.vercel.app' },
+    position: ASTEROID_POSITIONS[0],
+    seed: 42,
+  },
+  {
+    id: 'taskflow',
+    title: 'TaskFlow',
+    category: 'Full-Stack',
+    color: '#10b981',
+    description:
+      'A production-grade task management app built as a full MERN-stack technical assignment. Features a responsive React 18 + Vite frontend backed by an Express REST API, with data persisted in MongoDB Atlas. Fully deployed — frontend on Vercel, backend on Render.',
+    summary: 'Full MERN-stack task tracker, deployed end-to-end',
+    details: {
+      role: 'Full-Stack Developer',
+      stack: 'React 18, Vite, Express, MongoDB Atlas',
+      period: '2024',
+      status: 'Deployed',
+    },
+    tags: ['mern', 'react', 'mongodb', 'rest-api'],
+    links: {},
+    position: ASTEROID_POSITIONS[1],
+    seed: 137,
+  },
+  {
+    id: 'civicsentinel',
+    title: 'CivicSentinel',
+    category: 'Civic Tech',
+    color: '#f59e0b',
+    description:
+      'A civic-issue reporting and monitoring platform designed for public good. Citizens can flag local infrastructure problems — potholes, broken streetlights, water issues — and track resolution status in real time. Built to bridge the gap between communities and local authorities.',
+    summary: 'Civic-issue reporting tool for public good',
+    details: {
+      role: 'Developer',
+      stack: 'React, Node.js, Database',
+      period: '2024',
+      status: 'Prototype',
+    },
+    tags: ['civic-tech', 'social-impact', 'monitoring'],
+    links: {},
+    position: ASTEROID_POSITIONS[2],
+    seed: 256,
+  },
+  {
+    id: 'parksense',
+    title: 'ParkSense',
+    category: 'Smart Systems',
+    color: '#06b6d4',
+    description:
+      'A smart parking concept that explores sensor-driven space detection. The system identifies open parking spots in real time using IoT sensors and serves availability data to drivers through a clean dashboard, reducing urban congestion and parking frustration.',
+    summary: 'Smart parking with sensor-driven space detection',
+    details: {
+      role: 'Developer',
+      stack: 'IoT, Sensors, Web Dashboard',
+      period: '2024',
+      status: 'Concept',
+    },
+    tags: ['iot', 'smart-city', 'sensors'],
+    links: {},
+    position: ASTEROID_POSITIONS[3],
+    seed: 789,
+  },
+  {
+    id: 'portfolio-v1',
+    title: 'Portfolio Website',
+    category: 'Creative Dev',
+    color: '#ec4899',
+    description:
+      'A single-file portfolio built entirely without a framework — vanilla HTML, CSS, and JavaScript paired with Three.js for 3D visuals, GSAP for buttery animations, and Lenis for smooth scrolling. Proof that you don\'t need a bundler to ship something beautiful.',
+    summary: 'No-framework portfolio with Three.js + GSAP',
+    details: {
+      role: 'Designer & Developer',
+      stack: 'HTML, CSS, JS, Three.js, GSAP, Lenis',
+      period: '2024',
+      status: 'Live',
+    },
+    tags: ['creative', 'threejs', 'gsap', 'no-framework'],
+    links: { live: 'https://portfolio-theta-jade-31.vercel.app' },
+    position: ASTEROID_POSITIONS[4],
+    seed: 404,
+  },
+  {
+    id: 'certifications',
+    title: 'Certifications',
+    category: 'Credentials',
+    color: '#8b5cf6',
+    description:
+      'MERN full-stack certification from IIT Delhi, validating end-to-end web development proficiency. Also completed a Software Engineering job simulation from J.P. Morgan, gaining practical exposure to enterprise-grade development workflows.',
+    summary: 'IIT Delhi MERN cert + J.P. Morgan simulation',
+    details: {
+      role: 'Learner',
+      stack: 'MERN, Software Engineering',
+      period: '2023–2024',
+      status: 'Completed',
+    },
+    tags: ['iit-delhi', 'jp-morgan', 'mern', 'certification'],
+    links: {},
+    position: ASTEROID_POSITIONS[5],
+    seed: 512,
+  },
+  {
+    id: 'experience',
+    title: 'Internships & Leadership',
+    category: 'Experience',
+    color: '#f43f5e',
+    description:
+      'Currently interning as a web developer at Prodigy InfoTech, with prior experience at BuildTech Systems. Beyond code, leading as Tech Lead of the college Coding Club — organizing workshops, mentoring juniors, and building a developer community from the ground up.',
+    summary: 'Prodigy InfoTech intern · Coding Club Tech Lead',
+    details: {
+      role: 'Intern & Tech Lead',
+      stack: 'Web Dev, Leadership, Community',
+      period: '2023–Present',
+      status: 'Active',
+    },
+    tags: ['internship', 'leadership', 'prodigy', 'coding-club'],
+    links: {},
+    position: ASTEROID_POSITIONS[6],
+    seed: 999,
+  },
+];
+
+export const coreIdentity = {
+  name: 'Vaibhav Tripathi',
+  degree: 'B.Tech CSE',
+  university: 'Pranveer Singh Institute of Technology',
+  location: 'Kanpur, India',
+  graduation: '2026',
+  focus: ['Full-Stack Development', 'AI / Machine Learning'],
+  funFact: 'Marathon runner',
+  tagline: 'Building things that matter — from hackathon floors to production servers.',
+  links: {
+    github: 'https://github.com/indeedvaibhav',
+    linkedin: 'https://linkedin.com/in/vaibhav-tripathi-919939339/',
+  },
+};
