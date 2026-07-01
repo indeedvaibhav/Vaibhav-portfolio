@@ -1,0 +1,177 @@
+/* ========== ASTEROID CARD OVERLAY ========== */
+
+.asteroid-card-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ========== CARD STYLING ========== */
+
+.achievement-card {
+  position: absolute;
+  width: min(640px, 88vw);
+  background: rgba(5, 6, 10, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(238, 241, 247, 0.1);
+  border-radius: 20px;
+  padding: 44px 40px;
+  pointer-events: auto;
+  opacity: 0;
+  transform: scale(0.75) rotateX(-20deg);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55),
+              0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  will-change: transform, opacity;
+}
+
+/* Accent color bar at top */
+.card-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-color, #ffb454);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 0 12px var(--accent-color, #ffb454);
+}
+
+/* Eyebrow label */
+.card-eyebrow {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  color: var(--accent-color, #ffb454);
+  margin-bottom: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+/* Title */
+.card-title {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #eef1f7;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Category pill */
+.card-category {
+  display: inline-block;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.65rem;
+  background: rgba(238, 241, 247, 0.06);
+  border: 1px solid rgba(238, 241, 247, 0.14);
+  color: #8891a6;
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin-bottom: 24px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Description block */
+.card-desc {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #c0c8de;
+  max-width: 54ch;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Each animated desc line */
+.desc-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(-20px);
+  will-change: transform, opacity;
+}
+
+/* Tags row */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.card-tags span {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  border: 1px solid rgba(238, 241, 247, 0.16);
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: #7a8899;
+  background: rgba(238, 241, 247, 0.03);
+  letter-spacing: 0.04em;
+}
+
+/* ========== SHATTER PARTICLES ========== */
+
+.shatter-particle {
+  position: fixed;
+  pointer-events: none;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.3rem;
+  font-weight: 700;
+  z-index: 999;
+  will-change: left, top, opacity;
+  user-select: none;
+}
+
+/* ========== PROGRESS INDICATOR ========== */
+
+.card-hud-progress {
+  position: fixed;
+  bottom: 38px;
+  right: 40px;
+  z-index: 20;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  color: #545e72;
+  pointer-events: none;
+  letter-spacing: 0.08em;
+}
+
+.card-hud-progress span {
+  color: #ffb454;
+  font-weight: 600;
+}
+
+/* ========== RESPONSIVE ========== */
+
+@media (max-width: 768px) {
+  .achievement-card {
+    padding: 32px 24px;
+  }
+
+  .card-title {
+    font-size: 1.6rem;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+  }
+
+  .card-hud-progress {
+    font-size: 0.68rem;
+    bottom: 20px;
+    right: 20px;
+  }
+}

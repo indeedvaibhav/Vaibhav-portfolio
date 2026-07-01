@@ -485,53 +485,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   50% { transform: translateY(4px); }
 }
 
-/* ─── Scroll Caption ─────────────────────────── */
-.scroll-caption {
-  position: fixed;
-  left: var(--space-2xl);
-  bottom: 30%;
-  z-index: 20;
-  max-width: 380px;
-  pointer-events: none;
-  transition: opacity 0.15s ease-out;
-}
-.caption-category {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border: 1px solid;
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--space-sm);
-}
-.caption-title {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(24px, 4vw, 36px);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  margin-bottom: var(--space-sm);
-}
-.caption-summary {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-md);
-}
-.caption-hint {
-  margin-top: var(--space-sm);
-}
-.caption-click-hint {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--text-dim);
-  text-transform: uppercase;
-}
 
 /* ─── Detail Panel ───────────────────────────── */
 .detail-panel {
@@ -724,7 +677,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     bottom: 20%;
     max-width: none;
   }
-  .caption-title { font-size: 24px; }
+
 
 
   .panel-title { font-size: 22px; }

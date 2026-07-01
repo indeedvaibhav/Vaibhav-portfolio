@@ -7,7 +7,7 @@ import IntroScreen from './ui/IntroScreen';
 import CrystalTransition from './ui/CrystalTransition';
 import TopNav from './ui/TopNav';
 import HUD from './ui/HUD';
-import ScrollCaption from './ui/ScrollCaption';
+import AsteroidCard from './ui/AsteroidCard';
 import DetailPanel from './ui/DetailPanel';
 import OutroSection from './ui/OutroSection';
 import AudioToggle from './ui/AudioToggle';
@@ -140,11 +140,13 @@ export default function App() {
         <div className="ui-layer">
           <TopNav />
           <HUD />
-          <ScrollCaption />
           <OutroSection />
           <AudioToggle />
         </div>
       )}
+
+      {/* ── Asteroid card overlay (scroll-driven, reads scrollState directly) ── */}
+      {phase === 'idle' && <AsteroidCard />}
 
       {/* ── Detail panel (always on top when open) ── */}
       {phase === 'idle' && <DetailPanel />}
