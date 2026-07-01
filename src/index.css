@@ -91,59 +91,239 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .preloader {
   position: fixed; inset: 0; z-index: 1000;
   background: var(--bg-deep);
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 0 0 8vh 6vw;
   transition: opacity 0.7s ease, visibility 0.7s ease;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
 }
 .preloader.hide {
   opacity: 0; visibility: hidden; pointer-events: none;
 }
 .preloader-content {
   display: flex; flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .loader-pct {
   font-family: var(--font-mono);
-  font-size: 1.1rem;
-  color: var(--text-dim);
-  margin-bottom: 10px;
+  font-size: 1.5rem;
   letter-spacing: 0.02em;
+  color: var(--text-dim);
+  align-self: flex-start;
+  margin-bottom: var(--space-sm);
 }
 .loader-word {
   display: flex;
   align-items: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(3rem, 11vw, 9rem);
-  line-height: 1;
-  color: var(--text-primary);
   letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 700;
+  text-transform: lowercase;
 }
 .loader-word span {
   display: inline-block;
+  line-height: 1;
 }
 .o-cap {
   background: var(--text-primary);
   border-radius: 999px;
-  margin: 0 0.03em;
-  flex-shrink: 0;
   transition: box-shadow 0.3s ease;
+  margin: 0 0.05em;
 }
 .o-cap.done {
   box-shadow: 0 0 30px 4px var(--accent-gold-dim);
   background: var(--accent-gold);
 }
+
+/* Error state (shared with old preloader) */
 .preloader-error {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: var(--space-md);
   font-family: var(--font-mono); font-size: 12px; color: var(--accent-gold);
+  z-index: 5;
 }
 .preloader-error button {
   padding: 6px 12px; border: 1px solid var(--accent-gold); border-radius: var(--radius-sm);
   color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.1em;
   background: transparent; cursor: pointer; transition: background 0.3s;
 }
-.preloader-error button:hover {
-  background: var(--accent-gold-dim);
+.preloader-error button:hover { background: var(--accent-gold-dim); }
+
+/* ─── Intro Screen ──────────────────────────── */
+.intro-screen {
+  position: fixed; inset: 0; z-index: 900;
+  background: var(--bg-deep);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+}
+.intro-screen--visible { opacity: 1; }
+.intro-screen--exit {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+  transition: opacity 0.65s ease-in, transform 0.65s ease-in;
+}
+
+/* Canvas for particle field */
+.intro-screen__canvas {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Radial spotlight behind headline */
+.intro-screen__spotlight {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(ellipse 55% 40% at 50% 50%, rgba(255,170,51,0.05), transparent 70%);
+}
+
+/* Subtle horizontal grid lines */
+.intro-screen__grid {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, transparent 1px, transparent 80px);
+}
+
+/* Content */
+.intro-screen__content {
+  position: relative; z-index: 2;
+  text-align: center;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 20px;
+  padding: var(--space-xl);
+}
+
+/* SIGNAL DETECTED eyebrow */
+.intro-screen__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.28em;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0.7;
+}
+.intro-screen__dot {
+  display: inline-block;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px 2px rgba(255,170,51,0.5);
+  animation: blink 2s ease-in-out infinite;
+}
+
+/* "Enter the Core" headline */
+.intro-screen__headline {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(44px, 8vw, 88px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0;
+}
+.intro-screen__headline-accent {
+  background: linear-gradient(120deg, var(--accent-gold) 0%, #fff 60%, var(--accent-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% auto;
+  animation: pl-shimmer 3s linear infinite;
+}
+@keyframes pl-shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Sub tagline */
+.intro-screen__sub {
+  font-size: 14px; line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 360px;
+  margin: 0;
+}
+
+/* CTA button */
+.intro-screen__cta {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 16px 34px;
+  border: 1px solid rgba(255,170,51,0.35);
+  border-radius: var(--radius-pill);
+  background: rgba(255,170,51,0.05);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s, transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+.intro-screen__cta:hover {
+  border-color: var(--accent-gold);
+  background: rgba(255,170,51,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(255,170,51,0.15);
+}
+.intro-screen__cta:active { transform: translateY(0); }
+.intro-screen__cta-text { position: relative; z-index: 1; }
+.intro-screen__cta-pulse {
+  position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(circle at center, rgba(255,170,51,0.12), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.intro-screen__cta:hover .intro-screen__cta-pulse { opacity: 1; }
+.intro-screen__cta--exit {
+  opacity: 0.4; pointer-events: none;
+  transform: scale(0.97);
+}
+
+/* Hint text */
+.intro-screen__hint {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-top: -8px;
+}
+
+/* Footer identity */
+.intro-screen__footer {
+  position: absolute; bottom: 28px;
+  display: flex; gap: 10px; align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.18);
+  z-index: 2;
+}
+.intro-screen__footer-mark { color: rgba(255,255,255,0.3); }
+.intro-screen__footer-sep { color: rgba(255,170,51,0.25); }
+
+/* ─── Crystal Transition Overlay ─────────────── */
+.crystal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  /* Canvas is appended inside by Three.js */
+}
+.crystal-overlay canvas {
+  display: block;
+  width: 100% !important; height: 100% !important;
+}
+.crystal-scanlines {
+  position: fixed; inset: 0; pointer-events: none; z-index: 501;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    rgba(255,255,255,0) 0px, rgba(255,255,255,0) 1px,
+    rgba(0,0,0,0.35) 2px, rgba(0,0,0,0) 3px
+  );
+  mix-blend-mode: overlay;
+  transition: opacity 0.08s linear;
+}
+.crystal-blackout {
+  position: fixed; inset: 0; z-index: 502;
+  background: var(--bg-deep);
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ─── Intro Overlay ──────────────────────────── */

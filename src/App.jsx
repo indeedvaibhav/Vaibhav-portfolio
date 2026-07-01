@@ -3,6 +3,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SpaceScene from './scene/SpaceScene';
 import Preloader from './ui/Preloader';
+import IntroScreen from './ui/IntroScreen';
+import CrystalTransition from './ui/CrystalTransition';
 import TopNav from './ui/TopNav';
 import HUD from './ui/HUD';
 import ScrollCaption from './ui/ScrollCaption';
@@ -18,21 +20,23 @@ gsap.registerPlugin(ScrollTrigger);
 
 /**
  * Root application.
- * Sets up the scroll-driven architecture:
- * - A scroll spacer div provides 900vh of scroll height
- * - GSAP ScrollTrigger scrubs scrollState.progress from 0→1
- * - The fixed Canvas reads scrollState.progress each frame
- * - UI overlays react to store changes
+ *
+ * Phase flow:
+ *   'loading'    → Preloader is displayed (0 → 100%)
+ *   'intro'      → Fullscreen intro screen ("Signal Detected" / "Get Started")
+ *   'transition' → Crystal/glitch cinematic overlay plays automatically
+ *   'idle'       → Portfolio running normally (scroll-driven, all sections live)
+ *
+ * The 3D scene and scroll spacer mount from the 'intro' phase onward so the
+ * R3F canvas is fully warm by the time the transition ends.
  */
 export default function App() {
   const phase = useStore((s) => s.phase);
+  const setPhase = useStore((s) => s.setPhase);
   const scrollRef = useRef(null);
   const [introOpacity, setIntroOpacity] = useState(1);
 
-  // Initialize scene after mount (now handled by Preloader onComplete)
-
-
-  // Set up GSAP ScrollTrigger → scrollState.progress
+  // Set up GSAP ScrollTrigger → scrollState.progress (only meaningful in 'idle')
   useEffect(() => {
     if (!scrollRef.current) return;
 
@@ -53,7 +57,7 @@ export default function App() {
     };
   }, []);
 
-  // Intro overlay fade — reads scroll state via rAF
+  // Intro overlay opacity — driven by scroll progress in 'idle'
   useEffect(() => {
     let raf;
     const update = () => {
@@ -69,21 +73,47 @@ export default function App() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  const isSceneReady = phase === 'intro' || phase === 'transition' || phase === 'idle';
+
   return (
     <>
-      {/* Preloader */}
-      <Preloader onComplete={() => useStore.getState().setPhase('idle')} />
+      {/* ── Preloader ───────────────────────────── */}
+      {phase === 'loading' && (
+        <Preloader
+          onComplete={() => setPhase('intro')}
+        />
+      )}
 
-      {/* Scroll spacer — provides the scroll height */}
-      <div ref={scrollRef} className="scroll-spacer" />
+      {/* ── Intro Screen ────────────────────────── */}
+      {phase === 'intro' && <IntroScreen />}
 
-      {/* Fixed 3D canvas */}
-      <div className="canvas-layer">
-        <SpaceScene />
-      </div>
+      {/* ── Crystal / Glitch Transition ─────────── */}
+      {phase === 'transition' && (
+        <CrystalTransition onComplete={() => setPhase('idle')} />
+      )}
 
-      {/* Intro overlay — core identity at scroll=0 */}
-      {introOpacity > 0.01 && (
+      {/* ── Scroll spacer + 3D scene (mounted from 'intro' onward) ── */}
+      {isSceneReady && (
+        <>
+          {/* Scroll spacer — provides 900vh of scroll height */}
+          <div ref={scrollRef} className="scroll-spacer" />
+
+          {/* Fixed 3D canvas — hidden behind the overlay during transition */}
+          <div
+            className="canvas-layer"
+            style={{
+              // Keep the canvas invisible during the transition so the crystal
+              // overlay is the only thing the user sees.
+              visibility: phase === 'idle' ? 'visible' : 'hidden',
+            }}
+          >
+            <SpaceScene />
+          </div>
+        </>
+      )}
+
+      {/* ── Hero intro overlay (scroll-driven fade in 'idle') ── */}
+      {phase === 'idle' && introOpacity > 0.01 && (
         <div className="intro-overlay" style={{ opacity: introOpacity }}>
           <div className="intro-content">
             <div className="intro-label">CORE SIGNAL DETECTED</div>
@@ -105,7 +135,7 @@ export default function App() {
         </div>
       )}
 
-      {/* UI overlays */}
+      {/* ── UI overlays (portfolio chrome) ─────── */}
       {phase === 'idle' && (
         <div className="ui-layer">
           <TopNav />
@@ -116,8 +146,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Detail panel (on top of everything) */}
-      <DetailPanel />
+      {/* ── Detail panel (always on top when open) ── */}
+      {phase === 'idle' && <DetailPanel />}
     </>
   );
 }

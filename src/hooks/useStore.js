@@ -2,7 +2,8 @@ import { create } from 'zustand';
 
 const useStore = create((set) => ({
   // ── Loading ──
-  phase: 'loading', // 'loading' | 'idle'
+  // Phase flow: 'loading' → 'intro' → 'transition' → 'idle'
+  phase: 'loading', // 'loading' | 'intro' | 'transition' | 'idle'
   setPhase: (phase) => set({ phase }),
 
   // ── Active asteroid (in-focus via scroll) ──
