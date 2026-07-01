@@ -48,7 +48,7 @@ function buildStars(count) {
 
 /* ─── Shard builder ─────────────────────────────────────────── */
 function buildShards(crystalGeo, colors) {
-  const nonIndexed = crystalGeo.toNonIndexed();
+  const nonIndexed = crystalGeo.index ? crystalGeo.toNonIndexed() : crystalGeo;
   const pos = nonIndexed.attributes.position;
   const shards = [];
   const a = new THREE.Vector3(),
