@@ -4,8 +4,10 @@ export const achievements = [
   {
     id: 'railsage',
     title: 'RailSage AI',
+    eyebrow: 'Achievement 01',
     category: 'AI Project',
     color: '#6366f1',
+    desc: 'An AI-powered travel assistant for Indian Railways,\nbuilt during a hackathon alongside teammate Aditya Dixit.\nLeverages Claude AI to help passengers plan routes and check PNR status.',
     description:
       'An AI-powered travel assistant for Indian Railways, built during a hackathon alongside teammate Aditya Dixit. Leverages Claude AI to help passengers plan routes, check PNR status, and get real-time journey insights — all through natural conversation.',
     summary: 'AI assistant for Indian Railways, built with Claude AI',
@@ -23,8 +25,10 @@ export const achievements = [
   {
     id: 'taskflow',
     title: 'TaskFlow',
+    eyebrow: 'Achievement 02',
     category: 'Full-Stack',
     color: '#10b981',
+    desc: 'A production-grade task management app built\nas a full MERN-stack technical assignment.\nFeatures a responsive React 18 + Vite frontend backed by an Express REST API.',
     description:
       'A production-grade task management app built as a full MERN-stack technical assignment. Features a responsive React 18 + Vite frontend backed by an Express REST API, with data persisted in MongoDB Atlas. Fully deployed — frontend on Vercel, backend on Render.',
     summary: 'Full MERN-stack task tracker, deployed end-to-end',
@@ -42,8 +46,10 @@ export const achievements = [
   {
     id: 'civicsentinel',
     title: 'CivicSentinel',
+    eyebrow: 'Achievement 03',
     category: 'Civic Tech',
     color: '#f59e0b',
+    desc: 'A civic-issue reporting and monitoring platform\ndesigned for public good. Citizens can flag local infrastructure problems\nand track resolution status in real time.',
     description:
       'A civic-issue reporting and monitoring platform designed for public good. Citizens can flag local infrastructure problems — potholes, broken streetlights, water issues — and track resolution status in real time. Built to bridge the gap between communities and local authorities.',
     summary: 'Civic-issue reporting tool for public good',
@@ -61,8 +67,10 @@ export const achievements = [
   {
     id: 'parksense',
     title: 'ParkSense',
+    eyebrow: 'Achievement 04',
     category: 'Smart Systems',
     color: '#06b6d4',
+    desc: 'A smart parking concept that explores sensor-driven\nspace detection. The system identifies open parking spots in real time\nusing IoT sensors and serves availability data to drivers.',
     description:
       'A smart parking concept that explores sensor-driven space detection. The system identifies open parking spots in real time using IoT sensors and serves availability data to drivers through a clean dashboard, reducing urban congestion and parking frustration.',
     summary: 'Smart parking with sensor-driven space detection',
@@ -80,8 +88,10 @@ export const achievements = [
   {
     id: 'portfolio-v1',
     title: 'Portfolio Website',
+    eyebrow: 'Achievement 05',
     category: 'Creative Dev',
     color: '#ec4899',
+    desc: 'A single-file portfolio built entirely without a framework\n— vanilla HTML, CSS, and JavaScript paired with Three.js for 3D visuals.\nProof that you don\'t need a bundler to ship something beautiful.',
     description:
       'A single-file portfolio built entirely without a framework — vanilla HTML, CSS, and JavaScript paired with Three.js for 3D visuals, GSAP for buttery animations, and Lenis for smooth scrolling. Proof that you don\'t need a bundler to ship something beautiful.',
     summary: 'No-framework portfolio with Three.js + GSAP',
@@ -99,8 +109,10 @@ export const achievements = [
   {
     id: 'certifications',
     title: 'Certifications',
+    eyebrow: 'Achievement 06',
     category: 'Credentials',
     color: '#8b5cf6',
+    desc: 'MERN full-stack certification from IIT Delhi,\nvalidating end-to-end web development proficiency.\nAlso completed a Software Engineering job simulation from J.P. Morgan.',
     description:
       'MERN full-stack certification from IIT Delhi, validating end-to-end web development proficiency. Also completed a Software Engineering job simulation from J.P. Morgan, gaining practical exposure to enterprise-grade development workflows.',
     summary: 'IIT Delhi MERN cert + J.P. Morgan simulation',
@@ -118,8 +130,10 @@ export const achievements = [
   {
     id: 'experience',
     title: 'Internships & Leadership',
+    eyebrow: 'Achievement 07',
     category: 'Experience',
     color: '#f43f5e',
+    desc: 'Currently interning as a web developer at Prodigy InfoTech,\nwith prior experience at BuildTech Systems.\nBeyond code, leading as Tech Lead of the college Coding Club.',
     description:
       'Currently interning as a web developer at Prodigy InfoTech, with prior experience at BuildTech Systems. Beyond code, leading as Tech Lead of the college Coding Club — organizing workshops, mentoring juniors, and building a developer community from the ground up.',
     summary: 'Prodigy InfoTech intern · Coding Club Tech Lead',
