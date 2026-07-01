@@ -1,95 +1,80 @@
-import { useEffect, useState, useRef } from 'react';
-import useStore from '../hooks/useStore';
-import gsap from 'gsap';
+import { useState, useEffect, useRef } from "react";
+import useStore from "../hooks/useStore";
 
-/**
- * Real loading screen tracking Three.js asset load progress.
- * Uses a polling approach on the store's loadProgress.
- * Styled with the space theme — fades out once the scene is ready.
- */
-export default function Preloader() {
-  const phase = useStore((s) => s.phase);
+export default function Preloader({ onComplete }) {
+  const [pct, setPct] = useState(0);
+  const [done, setDone] = useState(false);
   const [visible, setVisible] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const containerRef = useRef(null);
   const [error, setError] = useState(null);
+  const wordRef = useRef(null);
+  const [fontSize, setFontSize] = useState(0);
 
-  // Animate progress number
+  // Measure font size for the capsule math and handle resizing
   useEffect(() => {
-    if (phase === 'loading') {
-      // Simulate initial progress for perceived speed, then real progress kicks in
-      const timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(timer);
-            return prev;
-          }
-          return prev + Math.random() * 15;
-        });
-      }, 200);
+    const updateSize = () => {
+      if (wordRef.current) {
+        setFontSize(parseFloat(getComputedStyle(wordRef.current).fontSize));
+      }
+    };
+    updateSize();
+    // Add slight delay to handle font loading
+    const timer = setTimeout(updateSize, 100);
+    window.addEventListener('resize', updateSize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateSize);
+    };
+  }, []);
 
-      // Timeout fallback — if loading takes > 15s, show error
-      const timeout = setTimeout(() => {
-        if (useStore.getState().phase === 'loading') {
-          setError('Taking longer than expected...');
-        }
-      }, 15000);
-
-      return () => {
+  useEffect(() => {
+    let p = 0;
+    const timer = setInterval(() => {
+      p += 1.5 + Math.random() * 4;
+      if (p >= 100) {
+        p = 100;
         clearInterval(timer);
-        clearTimeout(timeout);
-      };
-    }
-  }, [phase]);
+        setTimeout(() => {
+          setDone(true);
+          setTimeout(() => {
+            if (onComplete) onComplete();
+            setVisible(false);
+          }, 700); // matches the fade-out duration
+        }, 500);
+      }
+      setPct(p);
+    }, 90);
 
-  // Transition out when ready
-  useEffect(() => {
-    if (phase === 'idle' || phase === 'ready') {
-      setProgress(100);
-      const timer = setTimeout(() => {
-        if (containerRef.current) {
-          gsap.to(containerRef.current, {
-            opacity: 0,
-            duration: 0.8,
-            ease: 'power2.inOut',
-            onComplete: () => setVisible(false),
-          });
-        }
-      }, 400);
-      return () => clearTimeout(timer);
-    }
-  }, [phase]);
+    // Timeout fallback — if loading takes > 15s, show error
+    const timeout = setTimeout(() => {
+      setError('Taking longer than expected...');
+    }, 15000);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(timeout);
+    };
+  }, [onComplete]);
 
   if (!visible) return null;
 
+  const baseSize = fontSize ? fontSize * 0.62 : 0;
+  const maxStretch = fontSize ? fontSize * 3.1 : 0;
+  const width = baseSize + (maxStretch - baseSize) * (pct / 100);
+
+  // For initial render before font size is measured, use em as fallback
+  const capStyle = fontSize ? { width, height: baseSize } : { width: '0.62em', height: '0.62em' };
+
   return (
-    <div ref={containerRef} className="preloader">
+    <div className={`preloader ${done ? "hide" : ""}`}>
       <div className="preloader-content">
-        <div className="preloader-icon">
-          <div className="preloader-ring" />
-          <div className="preloader-ring preloader-ring-2" />
-          <div className="preloader-dot" />
-        </div>
-
-        <div className="preloader-text">
-          <span className="preloader-label">INITIALIZING FIELD LOG</span>
-          <span className="preloader-dots">
-            <span>.</span>
-            <span>.</span>
-            <span>.</span>
-          </span>
-        </div>
-
-        <div className="preloader-progress">
-          <div className="preloader-bar">
-            <div
-              className="preloader-bar-fill"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
-          <span className="preloader-percent">
-            {String(Math.floor(Math.min(progress, 100))).padStart(3, '0')}%
-          </span>
+        <div className="loader-pct">{Math.floor(pct)}%</div>
+        <div className="loader-word" ref={wordRef}>
+          <span>L</span>
+          <span
+            className={`o-cap ${pct >= 100 ? "done" : ""}`}
+            style={capStyle}
+          />
+          <span>ADING</span>
         </div>
 
         {error && (

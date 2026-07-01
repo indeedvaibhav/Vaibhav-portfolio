@@ -29,13 +29,8 @@ export default function App() {
   const scrollRef = useRef(null);
   const [introOpacity, setIntroOpacity] = useState(1);
 
-  // Initialize scene after mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      useStore.getState().setPhase('idle');
-    }, 2200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Initialize scene after mount (now handled by Preloader onComplete)
+
 
   // Set up GSAP ScrollTrigger → scrollState.progress
   useEffect(() => {
@@ -77,7 +72,7 @@ export default function App() {
   return (
     <>
       {/* Preloader */}
-      <Preloader />
+      <Preloader onComplete={() => useStore.getState().setPhase('idle')} />
 
       {/* Scroll spacer — provides the scroll height */}
       <div ref={scrollRef} className="scroll-spacer" />
