@@ -23,15 +23,25 @@
   pointer-events: none;
 }
 
-/* ── Left column: cinematic typography ─────────────────── */
+.mission-chapter--reversed {
+  grid-template-columns: min(420px, 36vw) 1fr;
+}
 
-.mission-left {
+/* ── Typography Zone (Left by default) ─────────────────── */
+
+.mission-text-zone {
   display: flex;
   flex-direction: column;
   gap: 22px;
   padding: 0 40px 0 max(7vw, 40px);
   /* Nudge up slightly so it doesn't overlap the HUD */
   padding-bottom: 4vh;
+}
+
+/* When reversed (Text on right) */
+.mission-chapter--reversed .mission-text-zone {
+  grid-column: 2;
+  padding: 0 max(7vw, 40px) 0 40px;
 }
 
 .mission-number {
@@ -45,7 +55,7 @@
 
 .mission-title {
   font-family: var(--font-display);
-  font-size: clamp(3.8rem, 8.5vw, 10.5rem);
+  font-size: clamp(3rem, 7vw, 8.5rem);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 0.92;
@@ -96,15 +106,21 @@
   background: color-mix(in srgb, var(--accent-color) 10%, transparent);
 }
 
-/* ── Right column: glass info panel ────────────────────── */
+/* ── Panel Zone (Right by default) ────────────────────── */
 
-.mission-right {
+.mission-panel-zone {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-self: stretch;
   padding: 0 max(4vw, 28px) max(7vh, 40px) 24px;
   pointer-events: none;
+}
+
+/* When reversed (Panel on left) */
+.mission-chapter--reversed .mission-panel-zone {
+  grid-column: 1;
+  padding: 0 24px max(7vh, 40px) max(4vw, 28px);
 }
 
 .mission-panel {
@@ -276,13 +292,13 @@
     padding-top: 18vh;
   }
 
-  .mission-left {
-    padding: 0 6vw 20px;
+  .mission-text-zone {
+    padding: 0 6vw 20px !important;
     gap: 16px;
   }
 
   .mission-title {
-    font-size: clamp(2.8rem, 13vw, 4.5rem);
+    font-size: clamp(2.6rem, 11vw, 3.8rem);
     line-height: 0.95;
   }
 
@@ -290,10 +306,11 @@
     font-size: 0.95rem;
   }
 
-  .mission-right {
-    padding: 0 6vw 8vh;
+  .mission-panel-zone {
+    padding: 0 6vw 8vh !important;
     justify-content: flex-start;
     align-self: auto;
+    grid-row: auto !important;
   }
 }
 

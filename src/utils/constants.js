@@ -14,39 +14,39 @@ export const CAMERA_PATH_POINTS = [
   [0, 1, -5],          // P2  pulling away
 
   // ── Asteroid 1 (RailSage) ──
-  [2, 1.5, -19],       // P3  approach
-  [2.5, 1.5, -22],     // P4  center
-  [2, 1, -25],         // P5  depart
+  [0.5, 1.5, -19],     // P3  approach
+  [1, 1.5, -22],       // P4  center
+  [0.5, 1, -25],       // P5  depart
 
   // ── Asteroid 2 (TaskFlow) ──
-  [-2, 0, -39],        // P6  approach
-  [-2.5, -0.5, -42],   // P7  center
-  [-2, 0, -45],        // P8  depart
+  [-0.5, 0, -39],      // P6  approach
+  [-1, -0.5, -42],     // P7  center
+  [-0.5, 0, -45],      // P8  depart
 
   // ── Asteroid 3 (CivicSentinel) ──
-  [2, 2, -59],         // P9  approach
-  [2.5, 2.5, -62],     // P10 center
-  [2, 1.5, -65],       // P11 depart
+  [0.5, 2, -59],       // P9  approach
+  [1, 2.5, -62],       // P10 center
+  [0.5, 1.5, -65],     // P11 depart
 
   // ── Asteroid 4 (ParkSense) ──
-  [-2, -0.5, -79],     // P12 approach
-  [-2.5, -1, -82],     // P13 center
-  [-2, 0, -85],        // P14 depart
+  [-0.5, -0.5, -79],   // P12 approach
+  [-1, -1, -82],       // P13 center
+  [-0.5, 0, -85],      // P14 depart
 
   // ── Asteroid 5 (Portfolio) ──
-  [2, 3, -99],         // P15 approach
-  [2.5, 3.5, -102],    // P16 center
-  [2, 2, -105],        // P17 depart
+  [0.5, 3, -99],       // P15 approach
+  [1, 3.5, -102],      // P16 center
+  [0.5, 2, -105],      // P17 depart
 
   // ── Asteroid 6 (Certifications) ──
-  [-2, 1.5, -119],     // P18 approach
-  [-2.5, 1, -122],     // P19 center
-  [-2, 1, -125],       // P20 depart
+  [-0.5, 1.5, -119],   // P18 approach
+  [-1, 1, -122],       // P19 center
+  [-0.5, 1, -125],     // P20 depart
 
   // ── Asteroid 7 (Internships) ──
-  [2, 0.5, -139],      // P21 approach
-  [2.5, 0, -142],      // P22 center
-  [2, 0, -145],        // P23 depart
+  [0.5, 0.5, -139],    // P21 approach
+  [1, 0, -142],        // P22 center
+  [0.5, 0, -145],      // P23 depart
 
   // ── Outro ──
   [0, 5, -155],        // P24 pull-up
@@ -57,13 +57,13 @@ export const CAMERA_PATH_POINTS = [
 // Offset ~2.5–3 units laterally from the camera path centers,
 // alternating sides for visual variety.
 export const ASTEROID_POSITIONS = [
-  [5, 2, -22],         // A1 RailSage      — right of path
-  [-5, -1, -42],       // A2 TaskFlow      — left
-  [5, 3, -62],         // A3 CivicSentinel — right
-  [-5, -2, -82],       // A4 ParkSense     — left
-  [5, 4, -102],        // A5 Portfolio     — right
-  [-5, 1, -122],       // A6 Certifications— left
-  [5, 0, -142],        // A7 Internships   — right
+  [5.5, 2, -22],         // A1 RailSage      — right of path
+  [-5.5, -1, -42],       // A2 TaskFlow      — left
+  [5.5, 3, -62],         // A3 CivicSentinel — right
+  [-5.5, -2, -82],       // A4 ParkSense     — left
+  [5.5, 4, -102],        // A5 Portfolio     — right
+  [-5.5, 1, -122],       // A6 Certifications— left
+  [5.5, 0, -142],        // A7 Internships   — right
 ];
 
 // ─── Per-asteroid scroll focus ─────────────────────────────
@@ -90,8 +90,8 @@ export const OUTRO_START = 0.93;    // scroll progress when outro overlay fades 
 export const SCENE = {
   bgColor: '#050510',
   fogColor: '#050510',
-  fogDensity: 0.006,
-  ambientIntensity: 0.18,
+  fogDensity: 0.012,
+  ambientIntensity: 0.25,
   pointLightIntensity: 2.5,
   pointLightColor: '#ffcc66',
 };
@@ -99,13 +99,13 @@ export const SCENE = {
 // ─── Core sphere ───────────────────────────────────────────
 export const CORE = {
   position: [0, 0, 0],
-  radius: 1.2,
+  radius: 0.85,
   color: '#ffaa33',
   emissiveColor: '#ff8800',
   pulseSpeed: 0.8,
   pulseMin: 0.7,
-  pulseMax: 1.4,
-  glowScale: 1.35,
+  pulseMax: 1.2,
+  glowScale: 1.2,
 };
 
 // ─── Asteroid mesh ─────────────────────────────────────────
@@ -154,7 +154,7 @@ export const CAMERA = {
   far: 400,
   lookAheadT: 0.015,          // how far ahead on the spline the camera looks
   lookBlendToAsteroid: 0.65,  // how strongly to look at an in-focus asteroid (0-1)
-  smoothing: 0.08,            // lerp factor for lookAt smoothing
+  smoothing: 0.045,           // lerp factor for lookAt smoothing
 };
 
 // ─── Category colors ──────────────────────────────────────
