@@ -40,7 +40,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* Typography always left-aligned */
-  gap: 20px;
+  gap: 12px;
   max-width: 480px;
   width: 100%;
   padding-bottom: 2vh;
@@ -57,7 +57,7 @@
 
 .mission-title {
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 6.5vw, 8.2rem); /* Reduced scale by ~20% */
+  font-size: clamp(2.5rem, 5.8vw, 7.2rem); /* Reduced scale */
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 0.95;
@@ -118,7 +118,7 @@
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 16px;
   padding: 24px 28px;
-  margin-top: 10px; /* Separates it structurally from the text above */
+  margin-top: 0px; /* Brought closer to description */
   width: 100%;
   overflow: hidden;
   will-change: transform, opacity;

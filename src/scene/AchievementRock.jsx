@@ -45,7 +45,7 @@ export default function AchievementRock({ achievement, index }) {
     return new THREE.ShaderMaterial({
       uniforms: {
         color: { value: new THREE.Color(achievement.color) },
-        opacity: { value: 0.06 },
+        opacity: { value: 0.03 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -113,7 +113,7 @@ export default function AchievementRock({ achievement, index }) {
     // Apply glow only if active
     if (glowRef.current) {
       const isActive = useStore.getState().activeIndex === index;
-      glowRef.current.material.uniforms.opacity.value = isActive ? 0.06 : 0;
+      glowRef.current.material.uniforms.opacity.value = isActive ? 0.03 : 0;
     }
 
     // Apply HTML reticle opacity
@@ -133,7 +133,7 @@ export default function AchievementRock({ achievement, index }) {
 
   return (
     <group position={achievement.position}>
-      <mesh ref={meshRef} geometry={geometry} onClick={handleClick}>
+      <mesh ref={meshRef} geometry={geometry} onClick={handleClick} scale={0.75}>
         <meshStandardMaterial
           map={cMap}
           normalMap={nMap}
