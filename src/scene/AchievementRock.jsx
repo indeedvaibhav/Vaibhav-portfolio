@@ -51,11 +51,10 @@ export default function AchievementRock({ achievement, index }) {
     return [clone(colorMap), clone(normalMap), clone(roughnessMap), clone(aoMap)];
   }, [colorMap, normalMap, roughnessMap, aoMap, uvRotation]);
 
-  // ── Accent tint & emissive ─────────────────────────────────────────────────
-  const accentTint = useMemo(
-    () => new THREE.Color(achievement.color).multiplyScalar(0.35),
-    [achievement.color]
-  );
+  // Neutral grey so the texture's own colours dominate;
+  // only the emissive provides a barely-there accent hint.
+  const neutralColor = useMemo(() => new THREE.Color(0x888888), []);
+
   const emissiveColor = useMemo(
     () => new THREE.Color(achievement.color),
     [achievement.color]
@@ -103,13 +102,13 @@ export default function AchievementRock({ achievement, index }) {
         aoMap={aMap}
         aoMapIntensity={1.2}
         // ── Surface properties ─────────────────────────────────
-        roughness={1.0}
+        roughness={0.95}
         metalness={0.0}
-        // Subtle accent tint — keeps rock dark & believable
-        color={accentTint}
-        // ── Emissive "charged" glow ────────────────────────────
+        // Neutral base lets texture colours show 100% accurately
+        color={neutralColor}
+        // ── Emissive — faint "charged" accent hint ─────────────
         emissive={emissiveColor}
-        emissiveIntensity={0.08}
+        emissiveIntensity={0.04}
         // ── Tone mapping handled by renderer ───────────────────
         toneMapped={true}
       />
