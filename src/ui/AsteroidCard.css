@@ -122,19 +122,6 @@
   letter-spacing: 0.04em;
 }
 
-/* ========== SHATTER PARTICLES ========== */
-
-.shatter-particle {
-  position: fixed;
-  pointer-events: none;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 1.3rem;
-  font-weight: 700;
-  z-index: 999;
-  will-change: left, top, opacity;
-  user-select: none;
-}
-
 /* ========== PROGRESS INDICATOR ========== */
 
 .card-hud-progress {
