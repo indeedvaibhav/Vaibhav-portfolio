@@ -3,7 +3,7 @@
    Design System & Global Styles
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@400;500;700;900&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
 
 /* ─── Custom Properties ─────────────────────── */
 :root {
@@ -23,9 +23,10 @@
   --status-green: #10b981;
   --status-green-bg: rgba(16, 185, 129, 0.12);
 
-  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'Cabinet Grotesk', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-serif: 'Instrument Serif', serif;
 
   --space-xs: 4px;
   --space-sm: 8px;
@@ -341,7 +342,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .intro-label {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.25em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   color: var(--accent-gold);
   opacity: 0.7;
   margin-bottom: var(--space-lg);
@@ -349,7 +351,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .intro-name {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: clamp(32px, 6vw, 56px);
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -360,14 +362,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background-clip: text;
 }
 .intro-tagline {
-  font-size: 14px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.2rem;
   line-height: 1.6;
   color: var(--text-secondary);
   margin-bottom: var(--space-lg);
 }
 .intro-meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 1rem;
   color: var(--text-dim);
   letter-spacing: 0.05em;
   display: flex;
@@ -388,7 +393,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .intro-focus-tag {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 0.68rem;
+  font-weight: 400;
   letter-spacing: 0.06em;
   color: var(--accent-gold);
   padding: 3px 12px;

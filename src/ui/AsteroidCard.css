@@ -2,10 +2,7 @@
 
 .asteroid-card-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -17,7 +14,7 @@
 
 .achievement-card {
   position: absolute;
-  width: min(640px, 88vw);
+  width: min(840px, 90vw);
   background: rgba(5, 6, 10, 0.78);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -32,63 +29,99 @@
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55),
               0 0 0 1px rgba(255, 255, 255, 0.04) inset;
   will-change: transform, opacity;
+  display: flex;
+  gap: 40px;
+  overflow: hidden;
 }
 
-/* Accent color bar at top */
+/* ─── Layout Grid ─── */
+.card-left {
+  flex: 0 0 40%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 20px;
+}
+.card-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ─── Accent Color Bar ─── */
 .card-bar {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
+  width: 4px;
+  height: 0%; /* Animated on entry */
   background: var(--accent-color, #ffb454);
-  border-radius: 20px 20px 0 0;
   box-shadow: 0 0 12px var(--accent-color, #ffb454);
 }
 
-/* Eyebrow label */
+/* ─── Left Side: Watermark & Headers ─── */
+.card-watermark {
+  position: absolute;
+  top: -20px;
+  left: -10px;
+  font-family: var(--font-display);
+  font-size: 8rem;
+  font-weight: 800;
+  color: #ffffff;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+  line-height: 1;
+}
+
 .card-eyebrow {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--accent-color, #ffb454);
   margin-bottom: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0.9;
+  position: relative;
+  z-index: 1;
 }
 
-/* Title */
 .card-title {
-  font-family: var(--font-display, 'Space Grotesk', sans-serif);
-  font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
   font-weight: 700;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   color: #eef1f7;
   letter-spacing: -0.02em;
   line-height: 1.15;
+  position: relative;
+  z-index: 1;
 }
 
-/* Category pill */
 .card-category {
   display: inline-block;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-family: var(--font-mono);
   font-size: 0.65rem;
   background: rgba(238, 241, 247, 0.06);
   border: 1px solid rgba(238, 241, 247, 0.14);
   color: #8891a6;
   padding: 5px 14px;
   border-radius: 999px;
-  margin-bottom: 24px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
 }
 
-/* Description block */
+/* ─── Right Side: Content ─── */
 .card-desc {
-  font-size: 0.95rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
   line-height: 1.75;
   color: #c0c8de;
-  max-width: 54ch;
   margin-bottom: 24px;
   display: flex;
   flex-direction: column;
@@ -103,62 +136,64 @@
   will-change: transform, opacity;
 }
 
-/* Tags row */
-.card-tags {
+/* ─── Stat Chips ─── */
+.card-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
+  margin-bottom: 24px;
+}
+.stat-chip {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  opacity: 0;
+  transform: translateX(20px);
 }
 
-.card-tags span {
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 0.68rem;
-  border: 1px solid rgba(238, 241, 247, 0.16);
-  padding: 5px 12px;
-  border-radius: 999px;
-  color: #7a8899;
-  background: rgba(238, 241, 247, 0.03);
-  letter-spacing: 0.04em;
+/* ─── View Project Link ─── */
+.card-link {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent-color);
+  border-bottom: 1px solid var(--accent-color);
+  padding-bottom: 2px;
+  align-self: flex-start;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s;
 }
-
-/* ========== PROGRESS INDICATOR ========== */
-
-.card-hud-progress {
-  position: fixed;
-  bottom: 38px;
-  right: 40px;
-  z-index: 20;
-  font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: 0.75rem;
-  color: #545e72;
-  pointer-events: none;
-  letter-spacing: 0.08em;
+.card-link::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--accent-color);
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-out);
 }
-
-.card-hud-progress span {
-  color: #ffb454;
-  font-weight: 600;
+.card-link:hover {
+  color: var(--bg-deep);
+}
+.card-link:hover::before {
+  transform: scaleX(1);
 }
 
 /* ========== RESPONSIVE ========== */
-
 @media (max-width: 768px) {
   .achievement-card {
     padding: 32px 24px;
+    flex-direction: column;
+    gap: 24px;
   }
-
-  .card-title {
-    font-size: 1.6rem;
-  }
-
-  .card-desc {
-    font-size: 0.88rem;
-  }
-
-  .card-hud-progress {
-    font-size: 0.68rem;
-    bottom: 20px;
-    right: 20px;
-  }
+  .card-left { padding-left: 12px; }
+  .card-watermark { font-size: 6rem; top: -10px; }
+  .card-title { font-size: 1.8rem; }
+  .card-desc { font-size: 0.95rem; }
 }

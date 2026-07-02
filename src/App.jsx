@@ -8,6 +8,7 @@ import HeroOverlay from './ui/HeroOverlay';
 import CrystalTransition from './ui/CrystalTransition';
 import TopNav from './ui/TopNav';
 import HUD from './ui/HUD';
+import ScrollProgress from './ui/ScrollProgress';
 import AsteroidCard from './ui/AsteroidCard';
 import DetailPanel from './ui/DetailPanel';
 import OutroSection from './ui/OutroSection';
@@ -123,6 +124,7 @@ export default function App() {
         <div className="ui-layer">
           <TopNav />
           <HUD />
+          <ScrollProgress />
           <OutroSection />
           <AudioToggle />
         </div>
