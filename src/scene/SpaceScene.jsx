@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Sparkles } from '@react-three/drei';
 import {
   EffectComposer,
   Bloom,
@@ -74,17 +73,6 @@ export default function SpaceScene() {
       <Suspense fallback={null}>
         <Nebula />
         <Starfield />
-        
-        {/* Continuous Environmental Dust */}
-        <group position={[0, 0, -75]}>
-          {/* 500 large */}
-          <Sparkles count={500} scale={[40, 20, 180]} size={6} speed={0.2} opacity={0.12} color="#8899bb" />
-          {/* 1500 medium */}
-          <Sparkles count={1500} scale={[50, 30, 200]} size={3} speed={0.1} opacity={0.18} color="#aaccff" />
-          {/* 800 micro */}
-          <Sparkles count={800} scale={[60, 40, 220]} size={1.5} speed={0.05} opacity={0.25} color="#ffffff" />
-        </group>
-
         <CoreSphere />
         <AchievementField />
       </Suspense>

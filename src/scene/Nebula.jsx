@@ -10,9 +10,9 @@ export default function Nebula() {
   const material = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
-        colorTop: { value: new THREE.Color('#0f0b29') }, // Indigo
-        colorMid: { value: new THREE.Color('#050510') }, // Deep Navy
-        colorBot: { value: new THREE.Color('#0a1128') }, // Navy / Cyan hint
+        colorTop: { value: new THREE.Color('#0c0525') },
+        colorMid: { value: new THREE.Color('#050510') },
+        colorBot: { value: new THREE.Color('#051018') },
       },
       vertexShader: `
         varying vec3 vWorldPosition;

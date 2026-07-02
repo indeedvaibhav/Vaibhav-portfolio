@@ -431,122 +431,116 @@ export default function AsteroidCard() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="asteroid-card-overlay" ref={containerRef}>
-      {achievements.map((ach, i) => {
-        // Since ASTEROID_POSITIONS alternate (right, left, right),
-        // we alternate the DOM layout (Text Left / Text Right)
-        const isLeftAsteroid = i % 2 !== 0;
-
-        return (
-          <div
-            key={ach.id}
-            className={`mission-chapter ${isLeftAsteroid ? "mission-chapter--reversed" : ""}`}
-            ref={(el) => (cardElemsRef.current[i] = el)}
-            style={{
-              "--accent-color": CARD_COLORS[i] || ach.color,
-              opacity: 0,
-            }}
-          >
-            {/* ── TYPOGRAPHY ZONE ── */}
-            <div className="mission-text-zone">
-              <div className="mission-number">
-                MISSION {String(i + 1).padStart(2, "0")}
-              </div>
-
-              <h2 className="mission-title">{ach.title}</h2>
-
-              <p className="mission-desc">{ach.summary}</p>
-
-              <div className="mission-pills">
-                <span className="mission-pill">{ach.category}</span>
-                <span className="mission-pill mission-pill--status">
-                  {ach.details.status}
-                </span>
-              </div>
+      {achievements.map((ach, i) => (
+        <div
+          key={ach.id}
+          className="mission-chapter"
+          ref={(el) => (cardElemsRef.current[i] = el)}
+          style={{
+            "--accent-color": CARD_COLORS[i] || ach.color,
+            opacity: 0,
+          }}
+        >
+          {/* ── LEFT: Cinematic typography ── */}
+          <div className="mission-left">
+            <div className="mission-number">
+              MISSION {String(i + 1).padStart(2, "0")}
             </div>
 
-            {/* ── PANEL ZONE ── */}
-            <div className="mission-panel-zone">
-              <div
-                className="mission-panel"
-                ref={(el) => (panelElemsRef.current[i] = el)}
-              >
-                {/* Accent line across top */}
-                <div className="panel-accent-bar" />
+            <h2 className="mission-title">{ach.title}</h2>
 
-                {/* Eyebrow */}
-                <div className="panel-eyebrow">
-                  FIELD.LOG — {String(i + 1).padStart(2, "0")} / {String(achievements.length).padStart(2, "0")}
-                </div>
+            <p className="mission-desc">{ach.summary}</p>
 
-                {/* Overview */}
-                <div className="panel-section">
-                  <div className="panel-label">OVERVIEW</div>
-                  <div className="panel-text">{ach.summary}</div>
-                </div>
-
-                {/* Stack */}
-                <div className="panel-section">
-                  <div className="panel-label">STACK</div>
-                  <div className="panel-text panel-text--mono">{ach.details.stack}</div>
-                </div>
-
-                {/* Role & Period inline */}
-                <div className="panel-row-group">
-                  <div className="panel-section">
-                    <div className="panel-label">ROLE</div>
-                    <div className="panel-text">{ach.details.role}</div>
-                  </div>
-                  <div className="panel-section">
-                    <div className="panel-label">PERIOD</div>
-                    <div className="panel-text">{ach.details.period}</div>
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="panel-status">
-                  <span className="panel-status-dot" />
-                  {ach.details.status}
-                </div>
-
-                {/* Links */}
-                {Object.keys(ach.links).length > 0 && (
-                  <div className="panel-links">
-                    {ach.links.live && (
-                      <a
-                        href={ach.links.live}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="panel-link"
-                      >
-                        <span className="panel-link-arrow">→</span> LIVE DEMO
-                      </a>
-                    )}
-                    {ach.links.github && (
-                      <a
-                        href={ach.links.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="panel-link"
-                      >
-                        <span className="panel-link-arrow">→</span> GITHUB
-                      </a>
-                    )}
-                  </div>
-                )}
-
-                {/* Tags */}
-                {ach.tags && ach.tags.length > 0 && (
-                  <div className="panel-tags">
-                    {ach.tags.map((tag) => (
-                      <span key={tag} className="panel-tag">#{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
+            <div className="mission-pills">
+              <span className="mission-pill">{ach.category}</span>
+              <span className="mission-pill mission-pill--status">
+                {ach.details.status}
+              </span>
             </div>
           </div>
-        );
-      })}
+
+          {/* ── RIGHT: Glassmorphism info panel ── */}
+          <div className="mission-right">
+            <div
+              className="mission-panel"
+              ref={(el) => (panelElemsRef.current[i] = el)}
+            >
+              {/* Accent line across top */}
+              <div className="panel-accent-bar" />
+
+              {/* Eyebrow */}
+              <div className="panel-eyebrow">
+                FIELD.LOG — {String(i + 1).padStart(2, "0")} / {String(achievements.length).padStart(2, "0")}
+              </div>
+
+              {/* Overview */}
+              <div className="panel-section">
+                <div className="panel-label">OVERVIEW</div>
+                <div className="panel-text">{ach.summary}</div>
+              </div>
+
+              {/* Stack */}
+              <div className="panel-section">
+                <div className="panel-label">STACK</div>
+                <div className="panel-text panel-text--mono">{ach.details.stack}</div>
+              </div>
+
+              {/* Role & Period inline */}
+              <div className="panel-row-group">
+                <div className="panel-section">
+                  <div className="panel-label">ROLE</div>
+                  <div className="panel-text">{ach.details.role}</div>
+                </div>
+                <div className="panel-section">
+                  <div className="panel-label">PERIOD</div>
+                  <div className="panel-text">{ach.details.period}</div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="panel-status">
+                <span className="panel-status-dot" />
+                {ach.details.status}
+              </div>
+
+              {/* Links */}
+              {Object.keys(ach.links).length > 0 && (
+                <div className="panel-links">
+                  {ach.links.live && (
+                    <a
+                      href={ach.links.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="panel-link"
+                    >
+                      <span className="panel-link-arrow">→</span> LIVE DEMO
+                    </a>
+                  )}
+                  {ach.links.github && (
+                    <a
+                      href={ach.links.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="panel-link"
+                    >
+                      <span className="panel-link-arrow">→</span> GITHUB
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Tags */}
+              {ach.tags && ach.tags.length > 0 && (
+                <div className="panel-tags">
+                  {ach.tags.map((tag) => (
+                    <span key={tag} className="panel-tag">#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
