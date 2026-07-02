@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import html2canvas from "html2canvas";
 import { ASTEROID_SCROLL_CENTERS, FADE_RADIUS, FOCUS_RADIUS } from "../utils/constants";
 import { achievements } from "../data/achievements";
 import { scrollState } from "../utils/scrollState";
@@ -101,7 +102,7 @@ export default function AsteroidCard() {
             // Shatter fires once at entry of exit zone
             if (t > 0 && t < 0.15 && !shatteredRef.current.has(i)) {
               shatteredRef.current.add(i);
-              shatterCard(cardEl, CARD_COLORS[i] || ach.color);
+              shatterCard(cardEl);
             }
           }
           bestActive = i;
@@ -131,58 +132,104 @@ export default function AsteroidCard() {
   }, []);
 
   // ── Manual shatter particle effect (no Physics2DPlugin) ───────────────────
-  function shatterCard(cardEl, accentColor) {
-    const descText = cardEl.querySelector(".card-desc")?.textContent || "";
-    const chars = descText.split("").filter((c) => c.trim() !== "");
-    if (chars.length === 0) return;
+  async function shatterCard(cardEl) {
+    try {
+      const canvas = await html2canvas(cardEl, { backgroundColor: null });
+      const imgData = canvas.toDataURL();
+      const rect = cardEl.getBoundingClientRect();
 
-    const particleCount = 28;
-    const rect = cardEl.getBoundingClientRect();
-    const originX = rect.left + rect.width / 2;
-    const originY = rect.top + rect.height * 0.5;
+      // Immediately hide original card
+      cardEl.style.opacity = "0";
 
-    for (let k = 0; k < particleCount; k++) {
-      const char = chars[Math.floor(Math.random() * chars.length)];
-      const particle = document.createElement("div");
-      particle.className = "shatter-particle";
-      particle.textContent = char;
-      particle.style.color = accentColor;
-      particle.style.fontSize = (1 + Math.random() * 1.4).toFixed(2) + "rem";
-      particle.style.zIndex = "9999";
-      particle.style.left = originX + "px";
-      particle.style.top  = originY + "px";
-      document.body.appendChild(particle);
+      // White flash effect
+      const flash = document.createElement("div");
+      flash.style.position = "fixed";
+      flash.style.left = rect.left + "px";
+      flash.style.top = rect.top + "px";
+      flash.style.width = rect.width + "px";
+      flash.style.height = rect.height + "px";
+      flash.style.backgroundColor = "white";
+      flash.style.zIndex = "10000";
+      flash.style.opacity = "0";
+      flash.style.pointerEvents = "none";
+      flash.style.borderRadius = getComputedStyle(cardEl).borderRadius || "0";
+      document.body.appendChild(flash);
 
-      const speed = 120 + Math.random() * 200; // 120–320
-      const angle = Math.random() * Math.PI * 2;
-      const vx    = Math.cos(angle) * speed;
-      const vy    = Math.sin(angle) * speed - 40; // slight upward bias
+      const flashStart = Date.now();
+      const animateFlash = () => {
+        const elapsed = Date.now() - flashStart;
+        if (elapsed > 120) {
+          flash.remove();
+          return;
+        }
+        const p = elapsed / 120;
+        flash.style.opacity = p < 0.5 ? p * 2 * 0.6 : (1 - (p - 0.5) * 2) * 0.6;
+        requestAnimationFrame(animateFlash);
+      };
+      requestAnimationFrame(animateFlash);
 
-      animateParticle(particle, vx, vy, 280, 1.6);
+      const polygons = [
+        "polygon(0% 0%, 38% 0%, 29% 45%, 0% 32%)",
+        "polygon(38% 0%, 71% 0%, 58% 38%, 29% 45%)",
+        "polygon(71% 0%, 100% 0%, 100% 28%, 58% 38%)",
+        "polygon(100% 0%, 100% 28%, 72% 52%, 58% 38%)",
+        "polygon(0% 32%, 29% 45%, 18% 72%, 0% 65%)",
+        "polygon(29% 45%, 58% 38%, 62% 68%, 18% 72%)",
+        "polygon(58% 38%, 72% 52%, 88% 62%, 62% 68%)",
+        "polygon(72% 52%, 100% 28%, 100% 68%, 88% 62%)",
+        "polygon(0% 65%, 18% 72%, 12% 100%, 0% 100%)",
+        "polygon(18% 72%, 62% 68%, 48% 100%, 12% 100%)",
+        "polygon(62% 68%, 88% 62%, 82% 100%, 48% 100%)",
+        "polygon(88% 62%, 100% 68%, 100% 100%, 82% 100%)"
+      ];
+
+      polygons.forEach((poly) => {
+        const frag = document.createElement("img");
+        frag.src = imgData;
+        frag.style.position = "fixed";
+        frag.style.left = rect.left + "px";
+        frag.style.top = rect.top + "px";
+        frag.style.width = rect.width + "px";
+        frag.style.height = rect.height + "px";
+        frag.style.clipPath = poly;
+        frag.style.zIndex = "9999";
+        frag.style.pointerEvents = "none";
+        document.body.appendChild(frag);
+
+        const speed = 80 + Math.random() * 140; // 80-220
+        const angle = Math.random() * Math.PI * 2;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        const gravity = 350;
+        const rotSpeed = -180 + Math.random() * 360;
+        const delay = Math.random() * 80; // 0-80ms staggered launch
+
+        setTimeout(() => {
+          const startTime = Date.now();
+          const duration = 1.2;
+
+          const step = () => {
+            const elapsed = (Date.now() - startTime) / 1000;
+            if (elapsed > duration) {
+              frag.remove();
+              return;
+            }
+            
+            const x = vx * elapsed;
+            const y = vy * elapsed + 0.5 * gravity * elapsed * elapsed;
+            const rot = rotSpeed * elapsed;
+            const opacity = Math.max(0, 1 - elapsed / duration);
+            
+            frag.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+            frag.style.opacity = opacity;
+            requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }, delay);
+      });
+    } catch (e) {
+      console.error("Shatter error:", e);
     }
-  }
-
-  function animateParticle(particle, vx, vy, gravity, duration) {
-    const startTime = Date.now();
-    const startX    = parseFloat(particle.style.left);
-    const startY    = parseFloat(particle.style.top);
-
-    const step = () => {
-      const elapsed = (Date.now() - startTime) / 1000;
-      if (elapsed > duration) {
-        particle.remove();
-        return;
-      }
-      const x       = startX + vx * elapsed;
-      const y       = startY + vy * elapsed + 0.5 * gravity * elapsed * elapsed;
-      const opacity = Math.max(0, 1 - elapsed / duration);
-      particle.style.left    = x + "px";
-      particle.style.top     = y + "px";
-      particle.style.opacity = opacity;
-      requestAnimationFrame(step);
-    };
-
-    requestAnimationFrame(step);
   }
 
   return (
