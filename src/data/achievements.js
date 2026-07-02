@@ -156,9 +156,9 @@ export const coreIdentity = {
   university: 'Pranveer Singh Institute of Technology',
   location: 'Kanpur, India',
   graduation: '2026',
-  focus: ['Full-Stack Development', 'AI / Machine Learning'],
+  focus: ['Java Development', 'Backend Engineering', 'System Design'],
   funFact: 'Marathon runner',
-  tagline: 'Building things that matter — from hackathon floors to production servers.',
+  tagline: 'I write Java, play basketball, and pretend my poetry is intellectual.',
   links: {
     github: 'https://github.com/indeedvaibhav',
     linkedin: 'https://linkedin.com/in/vaibhav-tripathi-919939339/',

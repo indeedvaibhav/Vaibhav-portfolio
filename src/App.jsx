@@ -115,9 +115,11 @@ export default function App() {
       {/* ── Hero intro overlay (scroll-driven fade in 'idle') ── */}
       {phase === 'idle' && introOpacity > 0.01 && (
         <div className="intro-overlay" style={{ opacity: introOpacity }}>
-          <div className="intro-content">
+          <div className="intro-content-top">
             <div className="intro-label">CORE SIGNAL DETECTED</div>
             <h1 className="intro-name">{coreIdentity.name}</h1>
+          </div>
+          <div className="intro-content-bottom">
             <p className="intro-tagline">{coreIdentity.tagline}</p>
             <div className="intro-meta">
               <span>{coreIdentity.degree}</span>
