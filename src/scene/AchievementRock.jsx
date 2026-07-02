@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useTexture, Html } from '@react-three/drei';
+import { useTexture, Html, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { createAsteroidGeometry } from '../utils/asteroidGeometry';
 import { ASTEROID } from '../utils/constants';
@@ -10,6 +10,7 @@ import { useAudio } from '../hooks/useAudio';
 export default function AchievementRock({ achievement, index }) {
   const meshRef = useRef();
   const glowRef = useRef();
+  const lightRef = useRef();
   const tooltipRef = useRef();
   const { playClickSound } = useAudio();
 
@@ -40,36 +41,37 @@ export default function AchievementRock({ achievement, index }) {
   const neutralColor = useMemo(() => new THREE.Color(0x888888), []);
   const emissiveColor = useMemo(() => new THREE.Color(achievement.color), [achievement.color]);
 
-  // ── Glow Material ──
-  const glowMaterial = useMemo(() => {
+  // ── Atmospheric Fresnel Glow ──
+  const atmosphereMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         color: { value: new THREE.Color(achievement.color) },
-        opacity: { value: 0.06 },
+        opacity: { value: 0.0 },
       },
       vertexShader: `
-        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vPositionNormal;
         void main() {
-          vUv = uv;
-          // Keep glow facing camera
-          vec4 mvPosition = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-          mvPosition.xy += position.xy;
-          gl_Position = projectionMatrix * mvPosition;
+          vNormal = normalize(normalMatrix * normal);
+          vPositionNormal = normalize((modelViewMatrix * vec4(position, 1.0)).xyz);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
         uniform vec3 color;
         uniform float opacity;
-        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vPositionNormal;
         void main() {
-          float dist = distance(vUv, vec2(0.5));
-          float alpha = smoothstep(0.5, 0.0, dist) * opacity;
-          gl_FragColor = vec4(color, alpha);
+          // Calculate fresnel (rim light)
+          float intensity = pow(0.65 - dot(vNormal, vPositionNormal), 2.5);
+          gl_FragColor = vec4(color, intensity * opacity);
         }
       `,
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
     });
   }, [achievement.color]);
 
@@ -110,10 +112,24 @@ export default function AchievementRock({ achievement, index }) {
     const targetIntensity = isNear ? 1 : 0;
     hoverState.current.intensity = THREE.MathUtils.lerp(hoverState.current.intensity, targetIntensity, delta * 8);
 
-    // Apply glow only if active
+    // Apply environmental effects only if active
+    const isActive = useStore.getState().activeIndex === index;
+    const targetEnvOpacity = isActive ? 1.0 : 0.0;
+
     if (glowRef.current) {
-      const isActive = useStore.getState().activeIndex === index;
-      glowRef.current.material.uniforms.opacity.value = isActive ? 0.06 : 0;
+      glowRef.current.material.uniforms.opacity.value = THREE.MathUtils.lerp(
+        glowRef.current.material.uniforms.opacity.value,
+        targetEnvOpacity * 0.9, // peak intensity for atmosphere
+        delta * 3
+      );
+    }
+    
+    if (lightRef.current) {
+      lightRef.current.intensity = THREE.MathUtils.lerp(
+        lightRef.current.intensity,
+        targetEnvOpacity * 1.5,
+        delta * 3
+      );
     }
 
     // Apply HTML reticle opacity
@@ -151,11 +167,30 @@ export default function AchievementRock({ achievement, index }) {
         />
       </mesh>
       
-      {/* Background glow */}
-      <mesh ref={glowRef} position={[0, 0, -20]}>
-        <planeGeometry args={[120, 120]} />
-        <primitive object={glowMaterial} attach="material" />
+      {/* Atmospheric Fresnel Edge Glow */}
+      <mesh ref={glowRef} geometry={geometry} scale={1.08}>
+        <primitive object={atmosphereMaterial} attach="material" />
       </mesh>
+
+      {/* Space Dust / Particle Field */}
+      <Sparkles 
+        count={50} 
+        scale={6} 
+        size={3.5} 
+        speed={0.15} 
+        opacity={0.12} 
+        color={achievement.color} 
+      />
+
+      {/* Local Soft Light Scattering */}
+      <pointLight 
+        ref={lightRef}
+        position={[0, 0, 2]} 
+        distance={12} 
+        decay={2} 
+        color={achievement.color} 
+        intensity={0}
+      />
 
       {/* HTML Overlay */}
       <Html center style={{ pointerEvents: 'none', zIndex: 5 }}>
