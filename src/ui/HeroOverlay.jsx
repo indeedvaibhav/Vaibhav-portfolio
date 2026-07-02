@@ -4,7 +4,7 @@ import { coreIdentity } from '../data/achievements';
 const TAGLINE = coreIdentity.tagline;
 
 // ── Deterministic particle configs (sin-seeded so no random drift on remount) ──
-const PARTICLES = Array.from({ length: 18 }, (_, i) => {
+const PARTICLES = Array.from({ length: 8 }, (_, i) => {
   const a = Math.sin(i * 2.31 + 1.5) * 0.5 + 0.5;
   const b = Math.sin(i * 1.73 + 0.8) * 0.5 + 0.5;
   const c = Math.sin(i * 3.14 + 2.1) * 0.5 + 0.5;
@@ -13,8 +13,8 @@ const PARTICLES = Array.from({ length: 18 }, (_, i) => {
     orbitRadius: 65 + a * 115,   // 65 – 180 px
     duration:    3  + b * 6,     // 3  – 9  s per orbit
     size:        1  + c * 2,     // 1  – 3  px
-    delay:       -(i / 18),      // fraction; multiplied by duration for real delay
-    opacity:     0.4 + a * 0.5,
+    delay:       -(i / 8),       // fraction; multiplied by duration for real delay
+    opacity:     0.2 + a * 0.2,  // 0.2 - 0.4 max
   };
 });
 
@@ -42,7 +42,6 @@ export default function HeroOverlay({ opacity }) {
   // ── Refs ──────────────────────────────────────────────────────────────────
   const sunWrapRef  = useRef(null);
   const topLayerRef = useRef(null);
-  const tooltipRef  = useRef(null);   // "CORE DETECTED" tooltip
   const rafRef      = useRef(null);
   const mouseRef    = useRef({ x: 0, y: 0 });
   const lerpState   = useRef({ sunX: 0, sunY: 0, titleX: 0, titleY: 0 });
@@ -65,7 +64,6 @@ export default function HeroOverlay({ opacity }) {
 
       // Proximity detection — DOM mutation, avoids React re-render every frame
       const sun = sunWrapRef.current;
-      const tip = tooltipRef.current;
       if (sun) {
         const r    = sun.getBoundingClientRect();
         const cx   = r.left + r.width  / 2;
@@ -73,13 +71,6 @@ export default function HeroOverlay({ opacity }) {
         const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
         const near = dist < 200;
         sun.classList.toggle('hero-sun-wrap--near', near);
-        if (tip) {
-          tip.style.opacity = near ? '1' : '0';
-          if (near) {
-            tip.style.left = (e.clientX + 18) + 'px';
-            tip.style.top  = (e.clientY - 10) + 'px';
-          }
-        }
       }
     };
 
@@ -178,14 +169,6 @@ export default function HeroOverlay({ opacity }) {
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="intro-overlay" style={{ opacity }}>
-
-      {/* Scan line — sweeps top→bottom every 4 s */}
-      <div className="hero-scan-line" aria-hidden="true" />
-
-      {/* "CORE DETECTED" cursor tooltip — opacity driven by DOM mutation */}
-      <div ref={tooltipRef} className="core-detected-tip" aria-hidden="true">
-        CORE DETECTED
-      </div>
 
       {/* ── Top text — moves OPPOSITE to sun for depth ─────────────────── */}
       <div ref={topLayerRef} className="intro-content-top">

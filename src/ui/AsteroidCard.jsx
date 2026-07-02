@@ -51,6 +51,7 @@ export default function AsteroidCard() {
   const cardElemsRef = useRef([]);
   const rafRef = useRef(null);
   const shatteredRef = useRef(new Set()); // prevents re-firing during one exit pass
+  const hasBeenActiveRef = useRef(new Set()); // ensures shatter only fires if card was fully visible
 
   // ── Fragment system ──────────────────────────────────────────────────────
   /** @type {{ el: HTMLElement, vx: number, vy: number, rotSpeed: number }[]} */
@@ -155,29 +156,6 @@ export default function AsteroidCard() {
             line.style.transform = `translateY(${-20 + lineT * 20}px)`;
           });
 
-          // Accent bar draws down
-          const accentBar = cardEl.querySelector('.card-bar');
-          if (accentBar) {
-            accentBar.style.height = `${Math.min(100, t * 160)}%`; // draws slightly faster than the full phase
-          }
-
-          // Watermark counts up to target number
-          const watermark = cardEl.querySelector('.card-watermark');
-          if (watermark) {
-            const targetNum = i + 1;
-            const currentNum = Math.min(targetNum, Math.floor(t * 2.5 * targetNum));
-            watermark.textContent = String(currentNum).padStart(2, "0");
-          }
-
-          // Stat chips stagger in from right
-          const statChips = cardEl.querySelectorAll('.stat-chip');
-          statChips.forEach((chip, idx) => {
-            const offset = idx * 0.03 * (enterEnd - enterStart);
-            const chipT  = Math.max(0, Math.min(1, (progress - lineStart - offset) / lineWindow));
-            chip.style.opacity   = chipT;
-            chip.style.transform = `translateX(${20 - chipT * 20}px)`;
-          });
-
           // Allow re-shattering on next exit pass only once fully reassembled
           if (shatterStateRef.current === "idle" && shatterCardIdxRef.current !== i) {
             shatteredRef.current.delete(i);
@@ -191,6 +169,7 @@ export default function AsteroidCard() {
 
           if (t <= 0) {
             // Fully active
+            hasBeenActiveRef.current.add(i);
             cardEl.style.opacity   = "1";
             cardEl.style.transform = "scale(1) rotateX(0deg)";
             cardEl.style.translate = "none";
@@ -214,8 +193,8 @@ export default function AsteroidCard() {
               line.style.transform = `translateY(${-20 * revT}px)`;
             });
 
-            // Shatter fires once per exit pass
-            if (t > 0 && t < 0.15 && !shatteredRef.current.has(i)) {
+            // Shatter fires once per exit pass, ONLY if it was previously fully active
+            if (t > 0 && t < 0.15 && !shatteredRef.current.has(i) && hasBeenActiveRef.current.has(i)) {
               shatteredRef.current.add(i);
               triggerShatter(cardEl, i);
             }
@@ -239,6 +218,8 @@ export default function AsteroidCard() {
               line.style.transform = "translateY(-20px)";
             });
           }
+          hasBeenActiveRef.current.delete(i);
+          shatteredRef.current.delete(i);
 
           // If user jumped far above enter zone, clear any stale shatter state for this card
           if (
@@ -427,57 +408,41 @@ export default function AsteroidCard() {
           ref={(el) => (cardElemsRef.current[i] = el)}
           style={{ "--accent-color": CARD_COLORS[i] || ach.color }}
         >
-          {/* Accent bar draws down the left edge */}
+          {/* Accent bar at top */}
           <div className="card-bar" />
 
-          {/* ── LEFT COLUMN ── */}
-          <div className="card-left">
-            <div className="card-watermark">00</div>
-            <div className="card-eyebrow">{ach.eyebrow}</div>
-            <h2 className="card-title">{ach.title}</h2>
-            <div className="card-category">{ach.category}</div>
+          {/* Eyebrow */}
+          <div className="card-eyebrow">
+            Achievement {String(i + 1).padStart(2, "0")}
           </div>
 
-          {/* ── RIGHT COLUMN ── */}
-          <div className="card-right">
-            <div className="card-desc">
-              {ach.desc
-                ? ach.desc.split("\n").map((line, idx) => (
-                    <span key={idx} className="desc-line">
-                      {line.trim()}
-                    </span>
-                  ))
-                : ach.description.split(". ").slice(0, 3).map((line, idx) => (
-                    <span key={idx} className="desc-line">
-                      {line.trim().replace(/\.$/, "")}.
-                    </span>
-                  ))}
+          <h2 className="card-title">{ach.title}</h2>
+
+          <div className="card-category">{ach.category}</div>
+
+          {/* Description — split into animated lines */}
+          <div className="card-desc">
+            {ach.desc
+              ? ach.desc.split("\n").map((line, idx) => (
+                  <span key={idx} className="desc-line">
+                    {line.trim()}
+                  </span>
+                ))
+              : ach.description.split(". ").slice(0, 3).map((line, idx) => (
+                  <span key={idx} className="desc-line">
+                    {line.trim().replace(/\.$/, "")}.
+                  </span>
+                ))}
+          </div>
+
+          {/* Tags */}
+          {ach.tags && (
+            <div className="card-tags">
+              {ach.tags.map((tag, idx) => (
+                <span key={idx}>{tag}</span>
+              ))}
             </div>
-
-            {/* Stat Chips */}
-            {ach.details && (
-              <div className="card-stats">
-                {ach.details.stack && <span className="stat-chip">STACK: {ach.details.stack.split(',')[0]}</span>}
-                {ach.details.role && <span className="stat-chip">ROLE: {ach.details.role}</span>}
-                {ach.details.period && <span className="stat-chip">YEAR: {ach.details.period}</span>}
-              </div>
-            )}
-
-            {/* View Project Link / Tags */}
-            {ach.links?.live ? (
-              <a href={ach.links.live} target="_blank" rel="noreferrer" className="card-link">
-                → VIEW PROJECT
-              </a>
-            ) : (
-              ach.tags && (
-                <div className="card-tags">
-                  {ach.tags.slice(0, 3).map((tag, idx) => (
-                    <span key={idx}>{tag}</span>
-                  ))}
-                </div>
-              )
-            )}
-          </div>
+          )}
         </div>
       ))}
     </div>

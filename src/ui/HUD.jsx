@@ -96,44 +96,41 @@ export default function HUD() {
   return (
     <>
       <div ref={hudRef} className="hud-readout" style={{ opacity: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {/* Line 1: Number */}
-        <div style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 800,
-          fontSize: '2.5rem',
-          color: activeData.chapter > 0 ? activeData.color : 'var(--text-mono)',
-          lineHeight: 1,
-          transition: 'color 0.4s'
-        }}>
-          {String(Math.max(activeData.chapter, 0)).padStart(2, '0')}
-        </div>
-        
-        {/* Line 2: Total */}
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          color: 'var(--text-dim)',
-          fontSize: '0.8rem',
-          letterSpacing: '0.1em'
-        }}>
-          / {String(achievements.length).padStart(2, '0')}
+        {/* Line 1 & 2: Number and Total */}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+          <div style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 800,
+            fontSize: '2.5rem',
+            color: activeData.chapter > 0 ? activeData.color : 'var(--text-mono)',
+            lineHeight: 1,
+            transition: 'color 0.4s'
+          }}>
+            {String(Math.max(activeData.chapter, 0)).padStart(2, '0')}
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--text-dim)',
+            fontSize: '0.8rem',
+            letterSpacing: '0.1em'
+          }}>
+            / {String(achievements.length).padStart(2, '0')}
+          </div>
         </div>
 
-        {/* Line 3: Title */}
+        {/* Line 3: FIELD.LOG */}
         <div style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '0.7rem',
-          color: activeData.chapter > 0 ? activeData.color : 'var(--text-dim)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          marginTop: '4px',
-          opacity: activeData.chapter > 0 ? 1 : 0,
-          transition: 'opacity 0.4s, color 0.4s'
+          color: 'var(--text-dim)',
+          letterSpacing: '0.1em',
+          marginTop: '6px'
         }}>
-          {activeData.title || 'UNKNOWN SECTOR'}
+          FIELD.LOG
         </div>
 
         {/* Line 4: Status */}
-        <div className="hud-line hud-status" style={{ marginTop: '2px' }}>
+        <div className="hud-line hud-status">
           <span className="hud-blink" style={{ background: activeData.locked ? activeData.color : 'var(--accent-gold)' }} />
           <span className="hud-key" style={{ color: activeData.locked ? activeData.color : 'var(--text-mono)' }}>
             {activeData.locked ? 'LOCKED ON' : 'SCANNING'}

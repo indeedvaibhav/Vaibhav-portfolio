@@ -44,33 +44,17 @@ export default function CoreSphere() {
     });
   }, []);
 
-  const hoverBoostRef = useRef(0);
-
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime();
     const pulse =
       CORE.pulseMin +
       (CORE.pulseMax - CORE.pulseMin) * (0.5 + 0.5 * Math.sin(t * CORE.pulseSpeed));
 
-    // Calculate mouse distance from center in pixels
-    // state.pointer is [-1, 1], so multiply by half window dimensions
-    const mx = state.pointer.x * (window.innerWidth / 2);
-    const my = state.pointer.y * (window.innerHeight / 2);
-    const dist = Math.hypot(mx, my);
-
-    // Target boost: +0.5 if within 200px
-    const targetBoost = dist < 200 ? 0.5 : 0;
-    
-    // Smooth lerp (using delta for framerate independence)
-    hoverBoostRef.current = THREE.MathUtils.lerp(hoverBoostRef.current, targetBoost, delta * 5);
-
-    const totalIntensity = pulse + hoverBoostRef.current;
-
     if (meshRef.current) {
-      meshRef.current.material.emissiveIntensity = totalIntensity;
+      meshRef.current.material.emissiveIntensity = pulse;
     }
     if (glowRef.current) {
-      glowRef.current.material.uniforms.intensity.value = totalIntensity * 0.8;
+      glowRef.current.material.uniforms.intensity.value = pulse * 0.8;
     }
   });
 

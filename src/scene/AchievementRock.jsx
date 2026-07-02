@@ -45,7 +45,7 @@ export default function AchievementRock({ achievement, index }) {
     return new THREE.ShaderMaterial({
       uniforms: {
         color: { value: new THREE.Color(achievement.color) },
-        opacity: { value: 0.12 },
+        opacity: { value: 0.06 },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -110,27 +110,15 @@ export default function AchievementRock({ achievement, index }) {
     const targetIntensity = isNear ? 1 : 0;
     hoverState.current.intensity = THREE.MathUtils.lerp(hoverState.current.intensity, targetIntensity, delta * 8);
 
-    // Apply glow
+    // Apply glow only if active
     if (glowRef.current) {
-      const baseOpacity = 0.12 + Math.sin(t * 2) * 0.04;
-      glowRef.current.material.uniforms.opacity.value = baseOpacity + hoverState.current.intensity * 0.15;
+      const isActive = useStore.getState().activeIndex === index;
+      glowRef.current.material.uniforms.opacity.value = isActive ? 0.06 : 0;
     }
 
-    // Apply tilt to group
-    if (meshRef.current) {
-      const targetTiltX = isNear ? (my - py) * 0.001 : 0;
-      const targetTiltY = isNear ? (mx - px) * 0.001 : 0;
-      hoverState.current.tiltX = THREE.MathUtils.lerp(hoverState.current.tiltX, targetTiltX, delta * 5);
-      hoverState.current.tiltY = THREE.MathUtils.lerp(hoverState.current.tiltY, targetTiltY, delta * 5);
-      
-      meshRef.current.parent.rotation.x = hoverState.current.tiltX;
-      meshRef.current.parent.rotation.y = hoverState.current.tiltY;
-    }
-
-    // Apply HTML tooltip
+    // Apply HTML reticle opacity
     if (tooltipRef.current) {
       tooltipRef.current.style.opacity = hoverState.current.intensity;
-      tooltipRef.current.style.transform = `scale(${0.8 + hoverState.current.intensity * 0.2})`;
     }
   });
 
@@ -165,27 +153,13 @@ export default function AchievementRock({ achievement, index }) {
       
       {/* Background glow */}
       <mesh ref={glowRef} position={[0, 0, -20]}>
-        <planeGeometry args={[600, 600]} />
+        <planeGeometry args={[120, 120]} />
         <primitive object={glowMaterial} attach="material" />
       </mesh>
 
       {/* HTML Overlay */}
       <Html center style={{ pointerEvents: 'none', zIndex: 5 }}>
         <div ref={tooltipRef} style={{ opacity: 0, transition: 'none' }}>
-          <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '11px',
-            background: 'rgba(0,0,0,0.8)',
-            padding: '4px 10px',
-            borderRadius: '4px',
-            color: '#fff',
-            whiteSpace: 'nowrap',
-            transform: 'translateY(-120px)',
-            border: `1px solid ${achievement.color}40`,
-            textShadow: '0 0 4px rgba(0,0,0,0.5)',
-          }}>
-            {achievement.title}
-          </div>
           {/* Reticle Brackets */}
           <div style={{
             position: 'absolute',

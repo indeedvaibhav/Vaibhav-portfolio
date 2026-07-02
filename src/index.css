@@ -429,8 +429,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   opacity: 0;
   animation: corona-pulse 2.5s infinite linear;
 }
+.hero-corona:nth-of-type(1) { --max-op: 0.06; }
+.hero-corona:nth-of-type(2) { --max-op: 0.04; }
+.hero-corona:nth-of-type(3) { --max-op: 0.02; }
+
 @keyframes corona-pulse {
-  0% { transform: scale(1); opacity: 0.15; }
+  0% { transform: scale(1); opacity: var(--max-op, 0.06); }
   100% { transform: scale(2.5); opacity: 0; }
 }
 .hero-sun-wrap--near .hero-corona {
@@ -462,31 +466,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 @keyframes spin-orbit {
   0%   { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-.hero-scan-line {
-  position: fixed; top: -10px; left: 0; right: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 10px rgba(255,255,255,0.2);
-  pointer-events: none;
-  z-index: 100;
-  animation: scan-sweep 4s linear infinite;
-}
-@keyframes scan-sweep {
-  0% { transform: translateY(-10vh); opacity: 0; }
-  5% { opacity: 1; }
-  37.5% { transform: translateY(110vh); opacity: 1; }
-  40%, 100% { transform: translateY(110vh); opacity: 0; }
-}
-.core-detected-tip {
-  position: fixed;
-  font-family: var(--font-mono); font-size: 10px;
-  letter-spacing: 0.15em; color: var(--accent-gold);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 100;
-  text-shadow: 0 0 8px rgba(255,170,51,0.5);
 }
 .tw-cursor {
   display: inline-block;
