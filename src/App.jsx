@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SpaceScene from './scene/SpaceScene';
 import Preloader from './ui/Preloader';
 import IntroScreen from './ui/IntroScreen';
+import HeroOverlay from './ui/HeroOverlay';
 import CrystalTransition from './ui/CrystalTransition';
 import TopNav from './ui/TopNav';
 import HUD from './ui/HUD';
@@ -112,29 +113,9 @@ export default function App() {
         </>
       )}
 
-      {/* ── Hero intro overlay (scroll-driven fade in 'idle') ── */}
+      {/* ── Hero intro overlay (cinematic, interactive) ── */}
       {phase === 'idle' && introOpacity > 0.01 && (
-        <div className="intro-overlay" style={{ opacity: introOpacity }}>
-          <div className="intro-content-top">
-            <div className="intro-label">CORE SIGNAL DETECTED</div>
-            <h1 className="intro-name">{coreIdentity.name}</h1>
-          </div>
-          <div className="intro-content-bottom">
-            <p className="intro-tagline">{coreIdentity.tagline}</p>
-            <div className="intro-meta">
-              <span>{coreIdentity.degree}</span>
-              <span className="intro-sep">·</span>
-              <span>{coreIdentity.location}</span>
-              <span className="intro-sep">·</span>
-              <span>Class of {coreIdentity.graduation}</span>
-            </div>
-            <div className="intro-focus">
-              {coreIdentity.focus.map((f) => (
-                <span key={f} className="intro-focus-tag">{f}</span>
-              ))}
-            </div>
-          </div>
-        </div>
+        <HeroOverlay opacity={introOpacity} />
       )}
 
       {/* ── UI overlays (portfolio chrome) ─────── */}
