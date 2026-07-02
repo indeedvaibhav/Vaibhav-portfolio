@@ -91,7 +91,7 @@ export const SCENE = {
   bgColor: '#050510',
   fogColor: '#050510',
   fogDensity: 0.006,
-  ambientIntensity: 0.06,
+  ambientIntensity: 0.18,
   pointLightIntensity: 2.5,
   pointLightColor: '#ffcc66',
 };

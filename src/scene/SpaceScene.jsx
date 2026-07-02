@@ -43,14 +43,31 @@ export default function SpaceScene() {
     >
       <color attach="background" args={[SCENE.bgColor]} />
 
-      {/* Lighting */}
+      {/* Ambient fill — raise intensity so the dark rock side isn't pure black */}
       <ambientLight intensity={SCENE.ambientIntensity} />
+
+      {/* Core glow — warm point light at origin */}
       <pointLight
         position={[0, 0, 0]}
         color={SCENE.pointLightColor}
         intensity={SCENE.pointLightIntensity}
         distance={50}
         decay={2}
+      />
+
+      {/* Directional light at 45° — essential for normal maps to show depth */}
+      <directionalLight
+        position={[6, 8, 4]}
+        color="#c8d8ff"
+        intensity={1.4}
+        castShadow={false}
+      />
+
+      {/* Subtle fill light from the opposite side to soften hard shadows */}
+      <directionalLight
+        position={[-4, -3, -6]}
+        color="#1a0a2e"
+        intensity={0.4}
       />
 
       <Suspense fallback={null}>
