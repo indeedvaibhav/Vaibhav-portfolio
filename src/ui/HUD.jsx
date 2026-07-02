@@ -63,9 +63,9 @@ export default function HUD() {
 
       for (let i = 0; i < ASTEROID_SCROLL_CENTERS.length; i++) {
         const center = ASTEROID_SCROLL_CENTERS[i];
-        if (t >= center - 0.08 && t <= center + 0.08) {
+        if (t >= center - 0.10 && t <= center + 0.10) {
           currentIdx = i;
-          // Locked on if very close to center
+          // Locked on if within inner 30% of window
           if (Math.abs(t - center) < 0.03) {
             locked = true;
           }

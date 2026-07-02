@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ASTEROID_SCROLL_CENTERS, FADE_RADIUS, FOCUS_RADIUS } from "../utils/constants";
+import { ASTEROID_SCROLL_CENTERS } from "../utils/constants";
 import { achievements } from "../data/achievements";
 import { scrollState } from "../utils/scrollState";
 import "./AsteroidCard.css";
@@ -16,8 +15,15 @@ const CARD_COLORS = [
 ];
 
 /**
- * 12 polygon clip-paths that tile together to cover the full card.
- * All percentages so they scale with any card size.
+ * How wide each project's scroll "chapter" window is.
+ * Larger than the old FADE_RADIUS to give the cinematic
+ * reveal sequence enough scroll room to breathe.
+ */
+const MISSION_RADIUS = 0.10;
+
+/**
+ * 12 polygon clip-paths that tile together to cover the full element.
+ * All percentages so they scale with any element size.
  */
 const FRAGMENT_POLYGONS = [
   "polygon(0% 0%, 38% 0%, 29% 45%, 0% 32%)",
@@ -35,128 +41,162 @@ const FRAGMENT_POLYGONS = [
 ];
 
 /**
- * Scroll-driven achievement card overlay.
- * Reads scrollState.progress directly via RAF — no new ScrollTriggers.
+ * Cinematic, narrative project showcase.
  *
- * Animation sequence per card:
- *   ENTER        → scale 0.75→1, rotateX -20→0, desc lines stagger in
- *   ACTIVE       → fully visible
- *   EXIT         → shatter into 12 glass-panel fragments, fly apart with gravity
- *   HIDDEN       → opacity 0, reset
+ * Each project is a full-screen "mission chapter" that reveals
+ * sequentially as the camera scrolls toward its asteroid:
  *
- * Scroll BACK UP → fragments reassemble in reverse and card reappears
+ *   Stage 1 (0–35% of enter window): Mission number + huge title
+ *   Stage 2 (35–65%):               Description + category pills
+ *   Stage 3 (65–100%):              Glass info panel materialises
+ *   ACTIVE:                         Everything at full opacity
+ *   EXIT:                           Panel shatters; title drifts away
+ *   SCROLL BACK:                    Fragments reassemble; card restores
+ *
+ * The shatter / reassemble fragment physics engine is preserved exactly.
  */
 export default function AsteroidCard() {
-  const containerRef = useRef(null);
-  const cardElemsRef = useRef([]);
-  const rafRef = useRef(null);
-  const shatteredRef = useRef(new Set()); // prevents re-firing during one exit pass
-  const hasBeenActiveRef = useRef(new Set()); // ensures shatter only fires if card was fully visible
+  const containerRef   = useRef(null);
+  const cardElemsRef   = useRef([]);   // .mission-chapter per achievement
+  const panelElemsRef  = useRef([]);   // .mission-panel per achievement (shatter target)
+  const rafRef         = useRef(null);
 
-  // ── Fragment system ──────────────────────────────────────────────────────
-  /** @type {{ el: HTMLElement, vx: number, vy: number, rotSpeed: number }[]} */
-  const fragmentsRef = useRef([]);
-  /** @type {'idle'|'shattering'|'reassembling'} */
-  const shatterStateRef = useRef("idle");
-  /** 0 = assembled, 1 = fully shattered */
-  const shatterProgressRef = useRef(0);
-  /** shatterProgressRef value at the moment reassembly was triggered */
+  // Shatter guards
+  const shatteredRef        = useRef(new Set());
+  const hasBeenActiveRef    = useRef(new Set());
+
+  // Mouse parallax for panel
+  const mouseRef = useRef({ x: 0, y: 0 });
+
+  // ── Fragment system refs ────────────────────────────────────────────────────
+  const fragmentsRef                   = useRef([]);
+  const shatterStateRef                = useRef("idle");   // 'idle'|'shattering'|'reassembling'
+  const shatterProgressRef             = useRef(0);        // 0=assembled 1=shattered
   const shatterProgressAtReassembleRef = useRef(1);
-  const shatterStartTimeRef = useRef(0);
-  const reassembleStartTimeRef = useRef(0);
-  /** Index of the card that is currently shattering / reassembling */
-  const shatterCardIdxRef = useRef(-1);
+  const shatterStartTimeRef            = useRef(0);
+  const reassembleStartTimeRef         = useRef(0);
+  const shatterCardIdxRef              = useRef(-1);
+  const shatterRectRef                 = useRef(null);     // rect of the panel element
 
   const [currentIndex, setCurrentIndex] = useState(-1);
 
-  // ── Create 12 fragment divs once on mount ─────────────────────────────────
+  // ── Create 12 fragment divs once on mount ──────────────────────────────────
   useEffect(() => {
     const frags = FRAGMENT_POLYGONS.map((poly) => {
       const el = document.createElement("div");
-      el.style.position = "fixed";
-      el.style.background = "rgba(5, 6, 10, 0.75)";
-      el.style.border = "1px solid rgba(238, 241, 247, 0.12)";
-      el.style.backdropFilter = "blur(14px)";
-      el.style.webkitBackdropFilter = "blur(14px)";
-      el.style.clipPath = poly;
-      el.style.opacity = "0";
-      el.style.pointerEvents = "none";
-      el.style.zIndex = "9999";
-      el.style.willChange = "transform, opacity";
+      el.style.position        = "fixed";
+      el.style.background      = "rgba(5, 6, 10, 0.80)";
+      el.style.border          = "1px solid rgba(238, 241, 247, 0.14)";
+      el.style.backdropFilter  = "blur(16px)";
+      el.style.webkitBackdropFilter = "blur(16px)";
+      el.style.clipPath        = poly;
+      el.style.opacity         = "0";
+      el.style.pointerEvents   = "none";
+      el.style.zIndex          = "9999";
+      el.style.willChange      = "transform, opacity";
       document.body.appendChild(el);
-
       return {
         el,
-        // Randomise velocity once; reuse across all shatters
-        vx: -300 + Math.random() * 600,         // px/s
-        vy: -400 + Math.random() * 350,          // px/s — mostly upward burst
-        rotSpeed: -180 + Math.random() * 360,    // deg/s
+        vx:       -280 + Math.random() * 560,
+        vy:       -380 + Math.random() * 320,
+        rotSpeed: -160 + Math.random() * 320,
       };
     });
-
     fragmentsRef.current = frags;
+    return () => frags.forEach((f) => f.el.remove());
+  }, []);
 
-    return () => {
-      frags.forEach((f) => f.el.remove());
+  // ── Mouse parallax listener ────────────────────────────────────────────────
+  useEffect(() => {
+    const onMouse = (e) => {
+      mouseRef.current.x = (e.clientX - window.innerWidth  / 2) / window.innerWidth;
+      mouseRef.current.y = (e.clientY - window.innerHeight / 2) / window.innerHeight;
     };
+    window.addEventListener("mousemove", onMouse, { passive: true });
+    return () => window.removeEventListener("mousemove", onMouse);
   }, []);
 
   // ── Main scroll-driven RAF loop ────────────────────────────────────────────
   useEffect(() => {
     const animate = () => {
-      const progress = scrollState.progress; // 0 → 1
+      const progress = scrollState.progress;
       let bestActive = -1;
 
       achievements.forEach((ach, i) => {
         const center = ASTEROID_SCROLL_CENTERS[i];
         if (center === undefined) return;
 
-        const cardEl = cardElemsRef.current[i];
-        if (!cardEl) return;
+        const chapterEl = cardElemsRef.current[i];
+        const panelEl   = panelElemsRef.current[i];
+        if (!chapterEl) return;
 
-        const descLines = cardEl.querySelectorAll(".desc-line");
-
-        const enterStart = center - FADE_RADIUS;
+        const enterStart = center - MISSION_RADIUS;
         const enterEnd   = center;
         const exitStart  = center;
-        const exitEnd    = center + FADE_RADIUS;
+        const exitEnd    = center + MISSION_RADIUS;
+
+        // Child element handles
+        const numberEl = chapterEl.querySelector(".mission-number");
+        const titleEl  = chapterEl.querySelector(".mission-title");
+        const descEl   = chapterEl.querySelector(".mission-desc");
+        const pillsEl  = chapterEl.querySelector(".mission-pills");
 
         // ── ENTER PHASE ──────────────────────────────────────────────────────
         if (progress >= enterStart && progress < enterEnd) {
-          const t = (progress - enterStart) / (enterEnd - enterStart);
+          const t = (progress - enterStart) / (enterEnd - enterStart); // 0→1
 
-          // Trigger reassembly if this card had been shattered and user scrolled back
+          // Trigger reassembly if scrolling back through this card
           if (
             shatterCardIdxRef.current === i &&
             shatterProgressRef.current > 0 &&
             shatterStateRef.current !== "reassembling"
           ) {
-            triggerReassemble(cardEl, i);
+            triggerReassemble(chapterEl, panelEl, i);
           }
 
-          // Keep card hidden while fragments reassemble; restore happens in driveFragmentAnimation
-          if (
+          const isReassembling =
             shatterStateRef.current === "reassembling" &&
-            shatterCardIdxRef.current === i
-          ) {
-            cardEl.style.opacity = "0";
-          } else if (!shatteredRef.current.has(i)) {
-            cardEl.style.opacity = t;
-            cardEl.style.transform = `scale(${0.75 + t * 0.25}) rotateX(${-20 + t * 20}deg)`;
-            cardEl.style.translate = "none";
+            shatterCardIdxRef.current === i;
+
+          // Container visible (opacity driven per-child, not per-container)
+          chapterEl.style.opacity = isReassembling || shatteredRef.current.has(i)
+            ? "0"
+            : "1";
+
+          if (!isReassembling && !shatteredRef.current.has(i)) {
+            // Stage 1: Mission number + title (0 → 0.35)
+            const s1 = Math.max(0, Math.min(1, t / 0.35));
+            if (numberEl) {
+              numberEl.style.opacity   = s1 * 0.5;
+              numberEl.style.transform = `translateY(${(1 - s1) * 40}px)`;
+            }
+            if (titleEl) {
+              titleEl.style.opacity   = s1;
+              titleEl.style.transform = `translateY(${(1 - s1) * 70}px)`;
+            }
+
+            // Stage 2: Description + pills (0.35 → 0.65)
+            const s2 = Math.max(0, Math.min(1, (t - 0.35) / 0.30));
+            if (descEl) {
+              descEl.style.opacity   = s2;
+              descEl.style.transform = `translateY(${(1 - s2) * 30}px)`;
+            }
+            if (pillsEl) {
+              pillsEl.style.opacity   = s2;
+              pillsEl.style.transform = `translateY(${(1 - s2) * 20}px)`;
+            }
+
+            // Stage 3: Glass panel (0.65 → 1.0)
+            const s3 = Math.max(0, Math.min(1, (t - 0.65) / 0.35));
+            if (panelEl) {
+              const mx = mouseRef.current.x * 10 * s3;
+              const my = mouseRef.current.y * 10 * s3;
+              panelEl.style.opacity        = s3;
+              panelEl.style.transform      = `scale(${0.94 + s3 * 0.06}) translate(${mx}px, ${my}px)`;
+              panelEl.style.pointerEvents  = s3 > 0.5 ? "auto" : "none";
+            }
           }
 
-          // Desc lines stagger in starting at 20% of enter phase
-          const lineWindow = (enterEnd - enterStart) * 0.8;
-          const lineStart  = enterStart + (enterEnd - enterStart) * 0.2;
-          descLines.forEach((line, idx) => {
-            const offset = idx * 0.04 * (enterEnd - enterStart);
-            const lineT  = Math.max(0, Math.min(1, (progress - lineStart - offset) / lineWindow));
-            line.style.opacity   = lineT;
-            line.style.transform = `translateY(${-20 + lineT * 20}px)`;
-          });
-
-          // Allow re-shattering on next exit pass only once fully reassembled
           if (shatterStateRef.current === "idle" && shatterCardIdxRef.current !== i) {
             shatteredRef.current.delete(i);
           }
@@ -164,39 +204,53 @@ export default function AsteroidCard() {
           bestActive = i;
 
         // ── ACTIVE + EXIT PHASE ───────────────────────────────────────────────
-        } else if (progress >= enterEnd && progress < exitEnd) {
-          const t = (progress - exitStart) / (exitEnd - exitStart); // 0 → 1 during exit
+        } else if (progress >= exitStart && progress < exitEnd) {
+          const t = (progress - exitStart) / (exitEnd - exitStart); // 0→1
 
           if (t <= 0) {
-            // Fully active
+            // Fully active — mark and hold all elements at 1
             hasBeenActiveRef.current.add(i);
-            cardEl.style.opacity   = "1";
-            cardEl.style.transform = "scale(1) rotateX(0deg)";
-            cardEl.style.translate = "none";
-            descLines.forEach((line) => {
-              line.style.opacity   = "1";
-              line.style.transform = "translateY(0px)";
-            });
+            chapterEl.style.opacity = "1";
+            if (numberEl) { numberEl.style.opacity = "0.5";  numberEl.style.transform = "translateY(0px)"; }
+            if (titleEl)  { titleEl.style.opacity  = "1";    titleEl.style.transform  = "translateY(0px)"; }
+            if (descEl)   { descEl.style.opacity   = "1";    descEl.style.transform   = "translateY(0px)"; }
+            if (pillsEl)  { pillsEl.style.opacity  = "1";    pillsEl.style.transform  = "translateY(0px)"; }
+            if (panelEl)  {
+              const mx = mouseRef.current.x * 10;
+              const my = mouseRef.current.y * 10;
+              panelEl.style.opacity       = "1";
+              panelEl.style.transform     = `scale(1) translate(${mx}px, ${my}px)`;
+              panelEl.style.pointerEvents = "auto";
+            }
           } else {
-            // Exiting — keep card hidden once shattered so fragments take over
+            // Exiting — hide chapter if shattered
             if (shatteredRef.current.has(i)) {
-              cardEl.style.opacity = "0";
+              chapterEl.style.opacity     = "0";
+              if (panelEl) panelEl.style.pointerEvents = "none";
             } else {
-              cardEl.style.opacity   = 1 - t;
-              cardEl.style.transform = `scale(${1 - t * 0.2}) rotateX(0deg)`;
-              cardEl.style.translate = `0 ${t * 30}px`;
+              chapterEl.style.opacity = "1";
+
+              // Title + number drift upward elegantly
+              const titleFade = Math.max(0, 1 - t * 2.2);
+              const titleDrift = t * 50;
+              if (numberEl) { numberEl.style.opacity = Math.max(0, 0.5 - t * 1.5);  numberEl.style.transform = `translateY(${-titleDrift * 0.6}px)`; }
+              if (titleEl)  { titleEl.style.opacity  = titleFade;  titleEl.style.transform  = `translateY(${-titleDrift}px)`; }
+              if (descEl)   { descEl.style.opacity   = Math.max(0, 1 - t * 3);     descEl.style.transform   = `translateY(${-t * 30}px)`; }
+              if (pillsEl)  { pillsEl.style.opacity  = Math.max(0, 1 - t * 4);     pillsEl.style.transform  = `translateY(${-t * 20}px)`; }
+              if (panelEl)  {
+                const panelFade = Math.max(0, 1 - t * 2);
+                panelEl.style.opacity       = panelFade;
+                panelEl.style.transform     = `scale(${1 - t * 0.05}) translate(0px, ${t * -20}px)`;
+                panelEl.style.pointerEvents = panelFade > 0.5 ? "auto" : "none";
+              }
             }
 
-            descLines.forEach((line, idx) => {
-              const revT = Math.max(0, Math.min(1, t + idx * 0.05));
-              line.style.opacity   = Math.max(0, 1 - revT);
-              line.style.transform = `translateY(${-20 * revT}px)`;
-            });
-
-            // Shatter fires once per exit pass, ONLY if it was previously fully active
-            if (t > 0 && t < 0.15 && !shatteredRef.current.has(i) && hasBeenActiveRef.current.has(i)) {
+            // Shatter fires once per exit pass, ONLY if card was fully active
+            if (t > 0 && t < 0.12 && !shatteredRef.current.has(i) && hasBeenActiveRef.current.has(i)) {
               shatteredRef.current.add(i);
-              triggerShatter(cardEl, i);
+              // Target the panel element for a focused glass shatter
+              const target = panelEl || chapterEl;
+              triggerShatter(target, i);
             }
           }
 
@@ -204,24 +258,22 @@ export default function AsteroidCard() {
 
         // ── HIDDEN ────────────────────────────────────────────────────────────
         } else {
-          // Only force hide if not being driven by the fragment system
-          const isShatterTarget =
+          const isShatterDriven =
             shatterCardIdxRef.current === i &&
             shatterStateRef.current !== "idle";
 
-          if (!isShatterTarget) {
-            cardEl.style.opacity   = "0";
-            cardEl.style.transform = "scale(0.75) rotateX(-20deg)";
-            cardEl.style.translate = "none";
-            descLines.forEach((line) => {
-              line.style.opacity   = "0";
-              line.style.transform = "translateY(-20px)";
-            });
+          if (!isShatterDriven) {
+            chapterEl.style.opacity = "0";
+            if (numberEl) { numberEl.style.opacity = "0";   numberEl.style.transform = "translateY(40px)"; }
+            if (titleEl)  { titleEl.style.opacity  = "0";   titleEl.style.transform  = "translateY(70px)"; }
+            if (descEl)   { descEl.style.opacity   = "0";   descEl.style.transform   = "translateY(30px)"; }
+            if (pillsEl)  { pillsEl.style.opacity  = "0";   pillsEl.style.transform  = "translateY(20px)"; }
+            if (panelEl)  { panelEl.style.opacity  = "0";   panelEl.style.transform  = "scale(0.94)"; panelEl.style.pointerEvents = "none"; }
           }
+
           hasBeenActiveRef.current.delete(i);
           shatteredRef.current.delete(i);
 
-          // If user jumped far above enter zone, clear any stale shatter state for this card
           if (
             progress < enterStart &&
             shatterCardIdxRef.current === i &&
@@ -229,83 +281,68 @@ export default function AsteroidCard() {
             shatterProgressRef.current > 0
           ) {
             shatterProgressRef.current = 0;
-            shatterCardIdxRef.current = -1;
-            shatteredRef.current.delete(i);
+            shatterCardIdxRef.current  = -1;
           }
         }
       });
 
-      // Drive fragment physics in the same RAF tick
       driveFragmentAnimation();
-
       setCurrentIndex(bestActive);
       rafRef.current = requestAnimationFrame(animate);
     };
 
     rafRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
   // ── Trigger shatter ────────────────────────────────────────────────────────
-  function triggerShatter(cardEl, idx) {
-    const rect = cardEl.getBoundingClientRect();
+  function triggerShatter(targetEl, idx) {
+    const rect = targetEl.getBoundingClientRect();
+    shatterRectRef.current = rect;
 
-    // Position all fragments exactly over the card, transform at origin
     fragmentsRef.current.forEach((frag) => {
-      frag.el.style.left      = rect.left + "px";
-      frag.el.style.top       = rect.top + "px";
-      frag.el.style.width     = rect.width + "px";
+      frag.el.style.left      = rect.left   + "px";
+      frag.el.style.top       = rect.top    + "px";
+      frag.el.style.width     = rect.width  + "px";
       frag.el.style.height    = rect.height + "px";
       frag.el.style.transform = "translate(0px, 0px) rotate(0deg)";
       frag.el.style.opacity   = "1";
     });
 
-    // Immediately hide the real card — fragments take over visuals
-    cardEl.style.opacity = "0";
-
-    shatterCardIdxRef.current  = idx;
-    shatterStateRef.current    = "shattering";
-    shatterProgressRef.current = 0;
+    shatterCardIdxRef.current   = idx;
+    shatterStateRef.current     = "shattering";
+    shatterProgressRef.current  = 0;
     shatterStartTimeRef.current = Date.now();
 
     flashWhite(rect);
   }
 
   // ── Trigger reassemble ────────────────────────────────────────────────────
-  function triggerReassemble(cardEl, idx) {
-    const rect = cardEl.getBoundingClientRect();
+  function triggerReassemble(chapterEl, panelEl, idx) {
+    const targetEl = panelEl || chapterEl;
+    const rect = targetEl.getBoundingClientRect();
 
-    // Capture how scattered they are right now so we start from the right position
-    shatterProgressAtReassembleRef.current = Math.max(
-      shatterProgressRef.current,
-      0.01 // ensure at least a tiny scatter so animation runs
-    );
+    shatterProgressAtReassembleRef.current = Math.max(shatterProgressRef.current, 0.01);
 
-    // Re-anchor fragments to current card rect (it's fixed so rect shouldn't change,
-    // but refresh for safety)
     fragmentsRef.current.forEach((frag) => {
-      frag.el.style.left   = rect.left + "px";
-      frag.el.style.top    = rect.top + "px";
-      frag.el.style.width  = rect.width + "px";
+      frag.el.style.left   = rect.left   + "px";
+      frag.el.style.top    = rect.top    + "px";
+      frag.el.style.width  = rect.width  + "px";
       frag.el.style.height = rect.height + "px";
-      // Immediately place them at their "scattered" starting position
       const tEff = shatterProgressAtReassembleRef.current * 1.2;
       const x    = frag.vx * tEff;
       const y    = frag.vy * tEff + 0.5 * 420 * tEff * tEff;
       const rot  = frag.rotSpeed * tEff;
       frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
-      frag.el.style.opacity = String(shatterProgressAtReassembleRef.current);
+      frag.el.style.opacity   = String(shatterProgressAtReassembleRef.current);
     });
 
-    cardEl.style.opacity = "0";
-
-    shatterStateRef.current = "reassembling";
+    chapterEl.style.opacity = "0";
+    shatterStateRef.current        = "reassembling";
     reassembleStartTimeRef.current = Date.now();
   }
 
-  // ── Per-frame fragment physics driver ─────────────────────────────────────
+  // ── Per-frame fragment physics ─────────────────────────────────────────────
   function driveFragmentAnimation() {
     const state = shatterStateRef.current;
     if (state === "idle") return;
@@ -318,10 +355,9 @@ export default function AsteroidCard() {
       shatterProgressRef.current = progress;
 
       frags.forEach((frag) => {
-        const x       = frag.vx * t;
-        const y       = frag.vy * t + 0.5 * 520 * t * t;
-        const rot     = frag.rotSpeed * t;
-        // Hold fully visible for first 60%, then fade over the last 40%
+        const x   = frag.vx * t;
+        const y   = frag.vy * t + 0.5 * 520 * t * t;
+        const rot = frag.rotSpeed * t;
         const opacity = progress < 0.6 ? 1 : 1 - ((progress - 0.6) / 0.4);
         frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
         frag.el.style.opacity   = String(opacity);
@@ -330,16 +366,15 @@ export default function AsteroidCard() {
       if (progress >= 1) {
         frags.forEach((f) => (f.el.style.opacity = "0"));
         shatterStateRef.current = "idle";
-        // keep shatterProgressRef=1 and shatterCardIdxRef so reassemble can trigger
       }
+
     } else if (state === "reassembling") {
       const elapsed  = (Date.now() - reassembleStartTimeRef.current) / 1000;
-      const progress = Math.min(elapsed / 1.0, 1); // 0 → 1 over 1.0s
-      // reverseProgress: 1 (fully scattered) → 0 (back at origin)
+      const progress = Math.min(elapsed / 1.0, 1);
       const reverseProgress = shatterProgressAtReassembleRef.current * (1 - progress);
 
       frags.forEach((frag) => {
-        const tEff = reverseProgress * 3.5; // map back into physics time
+        const tEff = reverseProgress * 3.5;
         const x    = frag.vx * tEff;
         const y    = frag.vy * tEff + 0.5 * 520 * tEff * tEff;
         const rot  = frag.rotSpeed * tEff;
@@ -348,20 +383,17 @@ export default function AsteroidCard() {
       });
 
       if (progress >= 1) {
-        // Fragments arrived — hide them and restore the real card
         frags.forEach((f) => {
           f.el.style.opacity   = "0";
           f.el.style.transform = "translate(0px, 0px) rotate(0deg)";
         });
 
-        const cardEl = cardElemsRef.current[shatterCardIdxRef.current];
-        if (cardEl) {
-          cardEl.style.opacity   = "1";
-          cardEl.style.transform = "scale(1) rotateX(0deg)";
-          cardEl.style.translate = "none";
+        // Restore the chapter element
+        const chapterEl = cardElemsRef.current[shatterCardIdxRef.current];
+        if (chapterEl) {
+          chapterEl.style.opacity = "1";
         }
 
-        // Re-arm for next exit pass
         shatteredRef.current.delete(shatterCardIdxRef.current);
         shatterProgressRef.current = 0;
         shatterStateRef.current    = "idle";
@@ -375,74 +407,138 @@ export default function AsteroidCard() {
     const flash = document.createElement("div");
     flash.style.cssText = `
       position: fixed;
-      left: ${rect.left}px;
-      top: ${rect.top}px;
-      width: ${rect.width}px;
-      height: ${rect.height}px;
-      background: white;
+      left: ${rect.left}px; top: ${rect.top}px;
+      width: ${rect.width}px; height: ${rect.height}px;
+      background: rgba(255,255,255,0.85);
       z-index: 10000;
       opacity: 0;
       pointer-events: none;
-      border-radius: 12px;
+      border-radius: 16px;
     `;
     document.body.appendChild(flash);
-
     const start = Date.now();
     const step = () => {
-      const p = (Date.now() - start) / 150; // 150ms total
+      const p = (Date.now() - start) / 160;
       if (p >= 1) { flash.remove(); return; }
       flash.style.opacity = p < 0.5
-        ? String(p * 2 * 0.5)
-        : String((1 - (p - 0.5) * 2) * 0.5);
+        ? String(p * 2 * 0.6)
+        : String((1 - (p - 0.5) * 2) * 0.6);
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="asteroid-card-overlay" ref={containerRef}>
       {achievements.map((ach, i) => (
         <div
           key={ach.id}
-          className="achievement-card"
+          className="mission-chapter"
           ref={(el) => (cardElemsRef.current[i] = el)}
-          style={{ "--accent-color": CARD_COLORS[i] || ach.color }}
+          style={{
+            "--accent-color": CARD_COLORS[i] || ach.color,
+            opacity: 0,
+          }}
         >
-          {/* Accent bar at top */}
-          <div className="card-bar" />
-
-          {/* Eyebrow */}
-          <div className="card-eyebrow">
-            Achievement {String(i + 1).padStart(2, "0")}
-          </div>
-
-          <h2 className="card-title">{ach.title}</h2>
-
-          <div className="card-category">{ach.category}</div>
-
-          {/* Description — split into animated lines */}
-          <div className="card-desc">
-            {ach.desc
-              ? ach.desc.split("\n").map((line, idx) => (
-                  <span key={idx} className="desc-line">
-                    {line.trim()}
-                  </span>
-                ))
-              : ach.description.split(". ").slice(0, 3).map((line, idx) => (
-                  <span key={idx} className="desc-line">
-                    {line.trim().replace(/\.$/, "")}.
-                  </span>
-                ))}
-          </div>
-
-          {/* Tags */}
-          {ach.tags && (
-            <div className="card-tags">
-              {ach.tags.map((tag, idx) => (
-                <span key={idx}>{tag}</span>
-              ))}
+          {/* ── LEFT: Cinematic typography ── */}
+          <div className="mission-left">
+            <div className="mission-number">
+              MISSION {String(i + 1).padStart(2, "0")}
             </div>
-          )}
+
+            <h2 className="mission-title">{ach.title}</h2>
+
+            <p className="mission-desc">{ach.summary}</p>
+
+            <div className="mission-pills">
+              <span className="mission-pill">{ach.category}</span>
+              <span className="mission-pill mission-pill--status">
+                {ach.details.status}
+              </span>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Glassmorphism info panel ── */}
+          <div className="mission-right">
+            <div
+              className="mission-panel"
+              ref={(el) => (panelElemsRef.current[i] = el)}
+            >
+              {/* Accent line across top */}
+              <div className="panel-accent-bar" />
+
+              {/* Eyebrow */}
+              <div className="panel-eyebrow">
+                FIELD.LOG — {String(i + 1).padStart(2, "0")} / {String(achievements.length).padStart(2, "0")}
+              </div>
+
+              {/* Overview */}
+              <div className="panel-section">
+                <div className="panel-label">OVERVIEW</div>
+                <div className="panel-text">{ach.summary}</div>
+              </div>
+
+              {/* Stack */}
+              <div className="panel-section">
+                <div className="panel-label">STACK</div>
+                <div className="panel-text panel-text--mono">{ach.details.stack}</div>
+              </div>
+
+              {/* Role & Period inline */}
+              <div className="panel-row-group">
+                <div className="panel-section">
+                  <div className="panel-label">ROLE</div>
+                  <div className="panel-text">{ach.details.role}</div>
+                </div>
+                <div className="panel-section">
+                  <div className="panel-label">PERIOD</div>
+                  <div className="panel-text">{ach.details.period}</div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="panel-status">
+                <span className="panel-status-dot" />
+                {ach.details.status}
+              </div>
+
+              {/* Links */}
+              {Object.keys(ach.links).length > 0 && (
+                <div className="panel-links">
+                  {ach.links.live && (
+                    <a
+                      href={ach.links.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="panel-link"
+                    >
+                      <span className="panel-link-arrow">→</span> LIVE DEMO
+                    </a>
+                  )}
+                  {ach.links.github && (
+                    <a
+                      href={ach.links.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="panel-link"
+                    >
+                      <span className="panel-link-arrow">→</span> GITHUB
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Tags */}
+              {ach.tags && ach.tags.length > 0 && (
+                <div className="panel-tags">
+                  {ach.tags.map((tag) => (
+                    <span key={tag} className="panel-tag">#{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       ))}
     </div>
