@@ -310,15 +310,17 @@ export default function AsteroidCard() {
 
     if (state === "shattering") {
       const t        = (Date.now() - shatterStartTimeRef.current) / 1000;
-      const progress = Math.min(t / 1.2, 1);
+      const progress = Math.min(t / 3.5, 1);
       shatterProgressRef.current = progress;
 
       frags.forEach((frag) => {
-        const x   = frag.vx * t;
-        const y   = frag.vy * t + 0.5 * 420 * t * t;
-        const rot = frag.rotSpeed * t;
+        const x       = frag.vx * t;
+        const y       = frag.vy * t + 0.5 * 520 * t * t;
+        const rot     = frag.rotSpeed * t;
+        // Hold fully visible for first 60%, then fade over the last 40%
+        const opacity = progress < 0.6 ? 1 : 1 - ((progress - 0.6) / 0.4);
         frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
-        frag.el.style.opacity   = String(1 - progress);
+        frag.el.style.opacity   = String(opacity);
       });
 
       if (progress >= 1) {
@@ -328,14 +330,14 @@ export default function AsteroidCard() {
       }
     } else if (state === "reassembling") {
       const elapsed  = (Date.now() - reassembleStartTimeRef.current) / 1000;
-      const progress = Math.min(elapsed / 0.9, 1); // 0 → 1 over 0.9s
+      const progress = Math.min(elapsed / 1.0, 1); // 0 → 1 over 1.0s
       // reverseProgress: 1 (fully scattered) → 0 (back at origin)
       const reverseProgress = shatterProgressAtReassembleRef.current * (1 - progress);
 
       frags.forEach((frag) => {
-        const tEff = reverseProgress * 1.2; // map back into physics time
+        const tEff = reverseProgress * 3.5; // map back into physics time
         const x    = frag.vx * tEff;
-        const y    = frag.vy * tEff + 0.5 * 420 * tEff * tEff;
+        const y    = frag.vy * tEff + 0.5 * 520 * tEff * tEff;
         const rot  = frag.rotSpeed * tEff;
         frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
         frag.el.style.opacity   = String(reverseProgress);
