@@ -29,7 +29,7 @@ export default function AsteroidCard() {
   const containerRef = useRef(null);
   const cardElemsRef = useRef([]);
   const rafRef = useRef(null);
-  const shatteredRef = useRef({}); // track per-index shatter to fire once
+  const shatteredRef = useRef(new Set()); // track per-index shatter to fire once
   const [currentIndex, setCurrentIndex] = useState(-1);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function AsteroidCard() {
           });
 
           // Reset shatter flag when re-entering
-          shatteredRef.current[i] = false;
+          shatteredRef.current.delete(i);
           bestActive = i;
 
         } else if (progress >= enterEnd && progress < exitEnd) {
@@ -99,8 +99,8 @@ export default function AsteroidCard() {
             });
 
             // Shatter fires once at entry of exit zone
-            if (!shatteredRef.current[i] && t > 0 && t < 0.15) {
-              shatteredRef.current[i] = true;
+            if (t > 0 && t < 0.15 && !shatteredRef.current.has(i)) {
+              shatteredRef.current.add(i);
               shatterCard(cardEl, CARD_COLORS[i] || ach.color);
             }
           }
@@ -116,9 +116,7 @@ export default function AsteroidCard() {
             line.style.transform = "translateY(-20px)";
           });
           // Reset shatter flag so it fires again on re-entry from below
-          if (progress < enterStart) {
-            shatteredRef.current[i] = false;
-          }
+          shatteredRef.current.delete(i);
         }
       });
 
@@ -138,7 +136,7 @@ export default function AsteroidCard() {
     const chars = descText.split("").filter((c) => c.trim() !== "");
     if (chars.length === 0) return;
 
-    const particleCount = 10;
+    const particleCount = 28;
     const rect = cardEl.getBoundingClientRect();
     const originX = rect.left + rect.width / 2;
     const originY = rect.top + rect.height * 0.5;
@@ -149,6 +147,8 @@ export default function AsteroidCard() {
       particle.className = "shatter-particle";
       particle.textContent = char;
       particle.style.color = accentColor;
+      particle.style.fontSize = (1 + Math.random() * 1.4).toFixed(2) + "rem";
+      particle.style.zIndex = "9999";
       particle.style.left = originX + "px";
       particle.style.top  = originY + "px";
       document.body.appendChild(particle);
