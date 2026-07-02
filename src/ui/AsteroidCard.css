@@ -16,22 +16,34 @@
 .mission-chapter {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: 1fr min(420px, 36vw);
-  grid-template-rows: 1fr;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   pointer-events: none;
 }
 
-/* ── Left column: cinematic typography ─────────────────── */
+.mission-chapter--left {
+  align-items: flex-start;
+  padding-left: max(6vw, 40px);
+  padding-right: 50vw; /* Keep right half clear for asteroid */
+}
 
-.mission-left {
+.mission-chapter--right {
+  align-items: flex-end;
+  padding-right: max(6vw, 40px);
+  padding-left: 50vw; /* Keep left half clear for asteroid */
+}
+
+/* ── Unified Content Stack ────────────────────────────── */
+
+.mission-content {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: 0 40px 0 max(7vw, 40px);
-  /* Nudge up slightly so it doesn't overlap the HUD */
-  padding-bottom: 4vh;
+  align-items: flex-start; /* Typography always left-aligned */
+  gap: 20px;
+  max-width: 480px;
+  width: 100%;
+  padding-bottom: 2vh;
 }
 
 .mission-number {
@@ -45,10 +57,10 @@
 
 .mission-title {
   font-family: var(--font-display);
-  font-size: clamp(3.8rem, 8.5vw, 10.5rem);
+  font-size: clamp(2.8rem, 6.5vw, 8.2rem); /* Reduced scale by ~20% */
   font-weight: 800;
   letter-spacing: -0.04em;
-  line-height: 0.92;
+  line-height: 0.95;
   color: #fff;
   /* Subtle accent gradient on the title */
   background: linear-gradient(
@@ -67,7 +79,7 @@
   font-size: clamp(0.95rem, 1.4vw, 1.15rem);
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.48);
-  max-width: 520px;
+  max-width: 460px;
   will-change: transform, opacity;
 }
 
@@ -96,16 +108,7 @@
   background: color-mix(in srgb, var(--accent-color) 10%, transparent);
 }
 
-/* ── Right column: glass info panel ────────────────────── */
-
-.mission-right {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-self: stretch;
-  padding: 0 max(4vw, 28px) max(7vh, 40px) 24px;
-  pointer-events: none;
-}
+/* ── Glass info panel ──────────────────────────────────── */
 
 .mission-panel {
   position: relative;
@@ -114,7 +117,9 @@
   -webkit-backdrop-filter: blur(22px);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 16px;
-  padding: 28px 30px 24px;
+  padding: 24px 28px;
+  margin-top: 10px; /* Separates it structurally from the text above */
+  width: 100%;
   overflow: hidden;
   will-change: transform, opacity;
   /* pointer-events toggled via JS */
@@ -268,16 +273,20 @@
 /* ── Responsive: mobile single-column ──────────────────── */
 
 @media (max-width: 768px) {
-  .mission-chapter {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    align-items: start;
-    overflow-y: auto;
+  .mission-chapter--left,
+  .mission-chapter--right {
+    padding-left: 6vw;
+    padding-right: 6vw;
     padding-top: 18vh;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
   }
 
-  .mission-left {
-    padding: 0 6vw 20px;
+  .mission-content {
+    max-width: 100%;
+    align-items: center; /* Center everything on mobile */
+    text-align: center;
     gap: 16px;
   }
 
@@ -288,12 +297,11 @@
 
   .mission-desc {
     font-size: 0.95rem;
+    text-align: center;
   }
 
-  .mission-right {
-    padding: 0 6vw 8vh;
-    justify-content: flex-start;
-    align-self: auto;
+  .mission-pills {
+    justify-content: center;
   }
 }
 
@@ -304,5 +312,6 @@
 
   .mission-panel {
     padding: 22px 22px 20px;
+    text-align: left; /* Keep panel internal text aligned left even on mobile */
   }
 }

@@ -431,18 +431,21 @@ export default function AsteroidCard() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="asteroid-card-overlay" ref={containerRef}>
-      {achievements.map((ach, i) => (
-        <div
-          key={ach.id}
-          className="mission-chapter"
-          ref={(el) => (cardElemsRef.current[i] = el)}
-          style={{
-            "--accent-color": CARD_COLORS[i] || ach.color,
-            opacity: 0,
-          }}
-        >
-          {/* ── LEFT: Cinematic typography ── */}
-          <div className="mission-left">
+      {achievements.map((ach, i) => {
+        const isRightAligned = i % 2 !== 0; // Odd indices (1, 3, 5) have asteroids on the left, so text goes right
+        
+        return (
+          <div
+            key={ach.id}
+            className={`mission-chapter ${isRightAligned ? 'mission-chapter--right' : 'mission-chapter--left'}`}
+            ref={(el) => (cardElemsRef.current[i] = el)}
+            style={{
+              "--accent-color": CARD_COLORS[i] || ach.color,
+              opacity: 0,
+            }}
+          >
+          {/* ── UNIFIED CONTENT STACK ── */}
+          <div className="mission-content">
             <div className="mission-number">
               MISSION {String(i + 1).padStart(2, "0")}
             </div>
@@ -457,16 +460,13 @@ export default function AsteroidCard() {
                 {ach.details.status}
               </span>
             </div>
-          </div>
 
-          {/* ── RIGHT: Glassmorphism info panel ── */}
-          <div className="mission-right">
             <div
               className="mission-panel"
               ref={(el) => (panelElemsRef.current[i] = el)}
             >
-              {/* Accent line across top */}
               <div className="panel-accent-bar" />
+
 
               {/* Eyebrow */}
               <div className="panel-eyebrow">
@@ -540,7 +540,8 @@ export default function AsteroidCard() {
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
