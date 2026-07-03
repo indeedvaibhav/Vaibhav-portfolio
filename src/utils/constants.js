@@ -122,8 +122,8 @@ export const ASTEROID = {
 // ─── Post-processing ──────────────────────────────────────
 export const POSTPROCESSING = {
   bloom: {
-    intensity: 2.4,
-    luminanceThreshold: 0.12,
+    intensity: 2.0,
+    luminanceThreshold: 0.15,
     luminanceSmoothing: 0.9,
     mipmapBlur: true,
   },
