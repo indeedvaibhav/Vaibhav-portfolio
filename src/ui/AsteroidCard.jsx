@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ASTEROID_SCROLL_CENTERS } from "../utils/constants";
 import { achievements } from "../data/achievements";
 import { scrollState } from "../utils/scrollState";
+import { gsap } from "gsap";
 import "./AsteroidCard.css";
 import "./credentials-gallery.css";
 
@@ -80,15 +81,48 @@ export default function AsteroidCard() {
   const shatterRectRef                 = useRef(null);     // rect of the panel element
 
   const [currentIndex, setCurrentIndex] = useState(-1);
-  const [selectedCredential, setSelectedCredential] = useState(null);
+  const [techFilter, setTechFilter] = useState('All');
+  const [legacyFilter, setLegacyFilter] = useState('🏀 Basketball');
 
+  // GSAP animations for tech-certs filtering
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') setSelectedCredential(null);
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
+    const cards = document.querySelectorAll('.tech-card-wrapper');
+    cards.forEach(card => {
+      const match = techFilter === 'All' || card.dataset.category === techFilter;
+      if (match) {
+        card.style.display = 'block';
+        gsap.to(card, { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
+      } else {
+        gsap.to(card, { 
+          opacity: 0, 
+          scale: 0.95, 
+          duration: 0.3, 
+          ease: 'power2.in',
+          onComplete: () => { if(card.style) card.style.display = 'none'; } 
+        });
+      }
+    });
+  }, [techFilter]);
+
+  // GSAP animations for legacy filtering
+  useEffect(() => {
+    const cards = document.querySelectorAll('.legacy-card-wrapper');
+    cards.forEach(card => {
+      const match = card.dataset.category === legacyFilter;
+      if (match) {
+        card.style.display = 'block';
+        gsap.to(card, { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
+      } else {
+        gsap.to(card, { 
+          opacity: 0, 
+          scale: 0.95, 
+          duration: 0.3, 
+          ease: 'power2.in',
+          onComplete: () => { if(card.style) card.style.display = 'none'; } 
+        });
+      }
+    });
+  }, [legacyFilter]);
 
   // ── Create 12 fragment divs once on mount ──────────────────────────────────
   useEffect(() => {
@@ -497,29 +531,21 @@ export default function AsteroidCard() {
             >
               <hr className="mission-hr" />
 
-              <div className="mission-data">
-                <div className="data-row">
-                  <span className="data-label">STACK</span>
-                  <span className="data-value">{ach.details.stack}</span>
+              {ach.id !== 'tech-certs' && ach.id !== 'legacy' && ach.details && (
+                <div className="mission-data">
+                  {Object.entries(ach.details).map(([key, val]) => (
+                    <div className="data-row" key={key}>
+                      <span className="data-label">{key.toUpperCase()}</span>
+                      <span className={`data-value ${key === 'status' ? 'data-value--status' : ''}`}>
+                        {key === 'status' && <span className="data-status-dot"></span>}
+                        {val}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-                <div className="data-row">
-                  <span className="data-label">ROLE</span>
-                  <span className="data-value">{ach.details.role}</span>
-                </div>
-                <div className="data-row">
-                  <span className="data-label">FOCUS</span>
-                  <span className="data-value">{ach.details.focus}</span>
-                </div>
-                <div className="data-row">
-                  <span className="data-label">STATUS</span>
-                  <span className="data-value data-value--status">
-                    <span className="data-status-dot"></span>
-                    {ach.details.status}
-                  </span>
-                </div>
-              </div>
+              )}
 
-              {ach.links.live && (
+              {ach.id !== 'tech-certs' && ach.id !== 'legacy' && ach.links && ach.links.live && (
                 <a
                   href={ach.links.live}
                   target="_blank"
@@ -530,60 +556,84 @@ export default function AsteroidCard() {
                 </a>
               )}
 
-              {ach.credentials && (
-                <>
-                  <div className="cg-container" style={{ pointerEvents: 'auto' }}>
-                    <div className="cg-strip">
-                      {ach.credentials.map((cred) => (
-                        <div key={cred.id} className="cg-card" onClick={() => setSelectedCredential(cred)}>
-                          <img src={cred.image} alt={cred.title} className="cg-thumb" />
-                          <div className="cg-bracket cg-bracket-tl"></div>
-                          <div className="cg-bracket cg-bracket-tr"></div>
-                          <div className="cg-bracket cg-bracket-bl"></div>
-                          <div className="cg-bracket cg-bracket-br"></div>
-                          <div className="cg-caption">
-                            <div className="cg-title">{cred.title}</div>
-                            <div className="cg-issuer">{cred.issuer}</div>
-                          </div>
+              {ach.id === 'tech-certs' && ach.certs && (
+                <div className="custom-mission-content">
+                  <div className="filter-pills-row">
+                    {['All', 'Java', 'Spring Boot', 'DSA', 'AWS', 'AI/ML', 'Web'].map(f => (
+                      <button 
+                        key={f} 
+                        className={`filter-pill tech-filter ${techFilter === f ? 'active' : ''}`}
+                        onClick={(e) => {
+                          setTechFilter(f);
+                          gsap.fromTo(e.currentTarget, { scale: 1 }, { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
+                        }}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="custom-grid">
+                    {ach.certs.map((cert, idx) => (
+                      <div key={idx} className="tech-card-wrapper custom-card tech-card" data-category={cert.domain}>
+                        <div className="card-top-pill">{cert.domain.toUpperCase()}</div>
+                        <div className="card-middle-title">{cert.name}</div>
+                        <div className="card-bottom-row">
+                          <span className="card-issuer">{cert.issuer}</span>
+                          <span className="card-year">{cert.year}</span>
                         </div>
-                      ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {ach.id === 'legacy' && ach.legacyItems && (
+                <div className="custom-mission-content">
+                  <div className="filter-pills-row">
+                    {['🏀 Basketball', '🏃 Athletics', '✍️ Writing', '👑 Leadership'].map(f => (
+                      <button 
+                        key={f} 
+                        className={`filter-pill legacy-filter ${legacyFilter === f ? 'active' : ''}`}
+                        onClick={(e) => {
+                          setLegacyFilter(f);
+                          gsap.fromTo(e.currentTarget, { scale: 1 }, { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
+                        }}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="legacy-stats-row">
+                    <div className="legacy-stat-col">
+                      <div className="ls-val">5+</div>
+                      <div className="ls-lbl">YEARS<br/>COMPETING</div>
+                    </div>
+                    <div className="legacy-stat-col">
+                      <div className="ls-val">12+</div>
+                      <div className="ls-lbl">CERTIFICATES</div>
+                    </div>
+                    <div className="legacy-stat-col">
+                      <div className="ls-val">4</div>
+                      <div className="ls-lbl">STATE<br/>EVENTS</div>
+                    </div>
+                    <div className="legacy-stat-col">
+                      <div className="ls-val">2+</div>
+                      <div className="ls-lbl">LEADERSHIP<br/>ROLES</div>
                     </div>
                   </div>
-
-                  {/* ── Slide-Out Reveal Panel (inside mission-panel to slide from behind) ── */}
-                  <div 
-                    className={`cg-reveal-panel ${selectedCredential ? 'active' : ''}`} 
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {selectedCredential && (
-                      <>
-                        <button className="cg-reveal-close" onClick={() => setSelectedCredential(null)}>
-                          [ ESC ]
-                        </button>
-                        <div className="cg-reveal-image-wrap">
-                          <img src={selectedCredential.image} alt={selectedCredential.title} className="cg-reveal-image" />
+                  <div className="custom-grid">
+                    {ach.legacyItems.map((item, idx) => (
+                      <div key={idx} className="legacy-card-wrapper custom-card legacy-card" data-category={item.category}>
+                        <div className="card-top-pill">{item.level.toUpperCase()}</div>
+                        <div className="card-middle-title">{item.name}</div>
+                        <div className="card-bottom-row">
+                          <span className="card-issuer">{item.event}</span>
+                          <span className="card-year">{item.year}</span>
                         </div>
-                        <div className="cg-reveal-meta">
-                          <h3 className="cg-reveal-title">{selectedCredential.title}</h3>
-                          <div className="mission-data" style={{ marginTop: '20px' }}>
-                            <div className="data-row" style={{borderBottom: '1px solid rgba(255,255,255,0.06)'}}>
-                              <span className="data-label">ISSUER</span>
-                              <span className="data-value">{selectedCredential.issuer}</span>
-                            </div>
-                            <div className="data-row" style={{borderBottom: '1px solid rgba(255,255,255,0.06)'}}>
-                              <span className="data-label">YEAR</span>
-                              <span className="data-value">{selectedCredential.year}</span>
-                            </div>
-                            <div className="data-row" style={{borderBottom: 'none'}}>
-                              <span className="data-label">CATEGORY</span>
-                              <span className="data-value">{selectedCredential.category}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                      </div>
+                    ))}
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>

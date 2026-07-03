@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useTexture, Html } from '@react-three/drei';
+import { useTexture, Html, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import { createAsteroidGeometry } from '../utils/asteroidGeometry';
 import { ASTEROID } from '../utils/constants';
@@ -46,6 +46,8 @@ export default function AchievementRock({ achievement, index }) {
       Math.sin(achievement.seed * 0.9) * 0.5 + 0.5
     ).normalize();
   }, [achievement.seed]);
+
+  const isLegacy = achievement.id === 'legacy';
 
   const hoverState = useRef({ intensity: 0, tiltX: 0, tiltY: 0 });
 
@@ -104,12 +106,23 @@ export default function AchievementRock({ achievement, index }) {
           aoMapIntensity={1.2}
           roughness={0.95}
           metalness={0.0}
-          color={neutralColor}
-          emissive={emissiveColor}
+          color={isLegacy ? new THREE.Color(0x888888) : neutralColor}
+          emissive={isLegacy ? new THREE.Color('#b8893d') : emissiveColor}
           emissiveIntensity={0.04}
           toneMapped={true}
         />
       </mesh>
+
+      {isLegacy && (
+        <Sparkles 
+          count={50} 
+          scale={2.5} 
+          size={3} 
+          speed={0.4} 
+          opacity={0.4} 
+          color="#fbbf24" 
+        />
+      )}
       
       {/* HTML Overlay */}
       <Html center style={{ pointerEvents: 'none', zIndex: 5 }}>

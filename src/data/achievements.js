@@ -160,50 +160,52 @@ export const achievements = [
   },
   {
     id: 'tech-certs',
-    title: { light: 'Technical', heavy: 'Certifications' },
-    eyebrow: 'Achievement 08',
+    title: { light: 'Certifications', heavy: '.' },
+    eyebrow: 'MISSION 08 · KNOWLEDGE ARCHIVE',
     category: 'Technical',
     color: '#8b5cf6',
-    desc: 'An archive of technical certifications and ongoing learning.',
-    description: 'An archive of technical certifications and ongoing learning, demonstrating proficiency across modern stacks and methodologies.',
-    summary: 'A collection of technical certificates spanning various web technologies.',
-    details: {
-      role: 'Learner',
-      stack: 'Various Technologies',
-      focus: 'Continuous Learning',
-      status: 'Completed',
-    },
+    desc: 'A knowledge archive spanning Java, Cloud, AI, and Web technologies.',
+    description: 'A knowledge archive spanning Java, Cloud, AI, and Web technologies.',
+    summary: 'A knowledge archive spanning Java, Cloud, AI, and Web technologies.',
     tags: ['certifications', 'technical', 'learning'],
     links: {},
     position: ASTEROID_POSITIONS[7],
     seed: 1024,
-    credentials: [
-      { id: 'cert-1', title: 'React Native Advanced', issuer: 'Meta', year: '2024', image: '/assets/profile.jpg', category: 'Frontend' },
-      { id: 'cert-2', title: 'AWS Cloud Practitioner', issuer: 'Amazon', year: '2023', image: '/assets/profile.jpg', category: 'Cloud' }
+    certs: [
+      { domain: "Java", name: "Java Foundations", issuer: "Oracle", year: "2024" },
+      { domain: "Java", name: "Java SE Advanced", issuer: "Oracle", year: "2024" },
+      { domain: "Spring Boot", name: "REST API Development", issuer: "Udemy", year: "2024" },
+      { domain: "DSA", name: "Data Structures & Algorithms", issuer: "Self-paced", year: "2024" },
+      { domain: "AWS", name: "Cloud Practitioner", issuer: "AWS", year: "2024" },
+      { domain: "AI/ML", name: "AI Fundamentals", issuer: "Coursera", year: "2024" },
+      { domain: "Web", name: "MERN Full Stack", issuer: "IIT Delhi", year: "2024" },
+      { domain: "Web", name: "Software Engineering Sim", issuer: "J.P. Morgan", year: "2024" }
     ]
   },
   {
-    id: 'leadership-athletics',
-    title: { light: 'Leadership', heavy: '& Athletics' },
+    id: 'legacy',
+    title: { light: 'Athletic & ', heavy: 'Legacy.' },
     eyebrow: 'Achievement 09',
     category: 'Leadership',
     color: '#fbbf24',
-    desc: 'An archive of leadership roles and athletic milestones.',
-    description: 'An archive of leadership roles, community building efforts, and endurance sports milestones.',
-    summary: 'Leadership roles and marathon achievements.',
-    details: {
-      role: 'Leader & Athlete',
-      stack: 'Community, Endurance',
-      focus: 'Personal Growth',
-      status: 'Active',
-    },
-    tags: ['leadership', 'marathon', 'community'],
+    desc: 'State courts. Marathon roads. School halls. All documented.',
+    description: 'State courts. Marathon roads. School halls. All documented.',
+    summary: 'State courts. Marathon roads. School halls. All documented.',
+    tags: ['leadership', 'marathon', 'community', 'sports'],
     links: {},
     position: ASTEROID_POSITIONS[8],
     seed: 2048,
-    credentials: [
-      { id: 'lead-1', title: 'Tech Lead - Coding Club', issuer: 'PSIT', year: '2023-Present', image: '/assets/profile.jpg', category: 'Leadership' },
-      { id: 'ath-1', title: 'Kanpur Half Marathon', issuer: 'Athletics Org', year: '2024', image: '/assets/profile.jpg', category: 'Athletics' }
+    legacyItems: [
+      { category: "🏀 Basketball", level: "STATE", name: "UP State Basketball Championship", event: "State Championship", year: "2022" },
+      { category: "🏀 Basketball", level: "ZONAL", name: "CISCE Zonal Championship", event: "CISCE Circuit", year: "2022" },
+      { category: "🏀 Basketball", level: "REGIONAL", name: "CISCE Regional Championship", event: "CISCE Circuit", year: "2023" },
+      { category: "🏀 Basketball", level: "WINNER", name: "AAVEG Basketball Tournament", event: "Inter-College", year: "2025" },
+      { category: "🏃 Athletics", level: "5TH PLACE", name: "Kanpur Half Marathon", event: "City Marathon", year: "2022" },
+      { category: "🏃 Athletics", level: "3RD PLACE", name: "Kanpur Half Marathon", event: "City Marathon", year: "2023" },
+      { category: "✍️ Writing", level: "3RD PLACE", name: "Creative Writing Competition", event: "Inter-School", year: "2019" },
+      { category: "✍️ Writing", level: "PARTICIPANT", name: "Literary Competition", event: "Regional Level", year: "2022" },
+      { category: "👑 Leadership", level: "CAPTAIN", name: "House Captain", event: "School Leadership", year: "2022" },
+      { category: "👑 Leadership", level: "CAPTAIN", name: "School Captain", event: "School Leadership", year: "2023" }
     ]
   },
 ];
