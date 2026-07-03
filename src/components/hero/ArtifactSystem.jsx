@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { ARTIFACTS } from './artifactData';
 import OrbitingArtifact from './OrbitingArtifact';
 import ArtifactTooltip from './ArtifactTooltip';
@@ -224,8 +225,37 @@ export default function ArtifactSystem() {
       if (!phys.dragMoved) {
         const config = ARTIFACTS.find((a) => a.id === id);
         const pos = getScreenPos(phys);
-        setActiveCard(config);
-        setCardPos({ x: pos.x, y: pos.y });
+        const artifactEl = artifactRefs.current[id];
+
+        const openCard = () => {
+          setActiveCard(config);
+          setCardPos({ x: pos.x, y: pos.y });
+        };
+
+        if (id === 'basketball' && artifactEl) {
+          const spinner = artifactEl.querySelector('.artifact__bball-spin');
+          if (spinner) {
+            gsap.fromTo(
+              spinner,
+              { rotateY: 0 },
+              { rotateY: 360, duration: 0.7, ease: 'power2.inOut', onComplete: openCard },
+            );
+          } else {
+            openCard();
+          }
+        } else if (id === 'journal' && artifactEl) {
+          const cover = artifactEl.querySelector('.artifact__journal-cover');
+          if (cover) {
+            gsap
+              .timeline({ onComplete: openCard })
+              .to(cover, { rotateY: -38, duration: 0.48, ease: 'power2.out' })
+              .to({}, { duration: 0.14 });
+          } else {
+            openCard();
+          }
+        } else {
+          openCard();
+        }
       }
 
       phys.dragMoved = false;
@@ -242,6 +272,23 @@ export default function ArtifactSystem() {
       window.removeEventListener('pointercancel', endDrag);
     };
   }, [toSunRelative, getScreenPos, updateTooltipDOM]);
+
+  useEffect(() => {
+    if (activeCard) return;
+
+    ARTIFACTS.forEach((config) => {
+      const el = artifactRefs.current[config.id];
+      if (!el) return;
+      if (config.id === 'journal') {
+        const cover = el.querySelector('.artifact__journal-cover');
+        if (cover) gsap.set(cover, { rotateY: 0 });
+      }
+      if (config.id === 'basketball') {
+        const spinner = el.querySelector('.artifact__bball-spin');
+        if (spinner) gsap.set(spinner, { rotateY: 0 });
+      }
+    });
+  }, [activeCard]);
 
   useEffect(() => {
     if (!activeCard) return;

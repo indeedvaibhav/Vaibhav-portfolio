@@ -43,6 +43,33 @@
   transform: translate(-50%, -50%) scale(1.08);
 }
 
+/* ── Shared collectible object base ─────────────────────── */
+
+.artifact__object {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.artifact__object-shadow {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 70%;
+  height: 10px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, var(--artifact-shadow, rgba(255, 170, 51, 0.28)) 0%, transparent 72%);
+  filter: blur(5px);
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.artifact--hovered .artifact__object-shadow {
+  opacity: 1.4;
+  transform: translateX(-50%) scale(1.15);
+}
+
 .artifact__glass {
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -72,75 +99,224 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* ── Basketball ─────────────────────────────────────────── */
+/* ── Basketball — premium collectible ───────────────────── */
 
-.artifact--basketball .artifact__glass {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  --artifact-glow: rgba(255, 120, 40, 0.45);
-  --artifact-glow-hover: rgba(255, 120, 40, 0.8);
+.artifact--basketball {
+  --artifact-shadow: rgba(255, 110, 30, 0.38);
 }
 
-.artifact__bball {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 35% 30%, rgba(255, 220, 160, 0.9), transparent 45%),
-    radial-gradient(circle at 65% 70%, rgba(180, 60, 10, 0.6), transparent 50%),
-    linear-gradient(145deg, #ff8c2a 0%, #c44e00 100%);
-  box-shadow:
-    0 0 18px rgba(255, 120, 40, 0.6),
-    inset -3px -4px 8px rgba(0, 0, 0, 0.35);
-  animation: artifact-bball-spin 6s linear infinite;
+.artifact--basketball .artifact__object--basketball {
+  width: 76px;
+  height: 76px;
+  filter: drop-shadow(0 0 18px rgba(255, 120, 40, 0.42));
+  transition: filter 0.4s ease;
 }
 
-.artifact__bball::before,
-.artifact__bball::after {
-  content: '';
-  position: absolute;
-  border: 1px solid rgba(40, 15, 0, 0.45);
-  border-radius: 50%;
-  pointer-events: none;
+.artifact--basketball.artifact--hovered .artifact__object--basketball {
+  filter: drop-shadow(0 0 32px rgba(255, 140, 50, 0.72));
 }
 
-.artifact__bball::before {
-  inset: 4px;
-  border-left: none;
-  border-right: none;
+.artifact__bball-scene {
+  width: 100%;
+  height: 100%;
+  perspective: 140px;
+  perspective-origin: 50% 50%;
 }
 
-.artifact__bball::after {
-  inset: 4px;
-  border-top: none;
-  border-bottom: none;
-  transform: rotate(90deg);
-}
-
-@keyframes artifact-bball-spin {
-  0%   { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ── Journal ────────────────────────────────────────────── */
-
-.artifact--journal .artifact__glass {
-  width: 58px;
-  height: 72px;
-  --artifact-glow: rgba(255, 180, 84, 0.4);
-  --artifact-glow-hover: rgba(255, 180, 84, 0.75);
-}
-
-.artifact__journal {
+.artifact__bball-float {
   position: relative;
   width: 100%;
   height: 100%;
-  padding: 10px 8px 8px 14px;
+  animation: artifact-bball-drift 14s linear infinite;
+}
+
+.artifact__bball-spin {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: artifact-bball-rotate-y 18s linear infinite;
+}
+
+@keyframes artifact-bball-rotate-y {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+.artifact__bball-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+}
+
+.artifact__bball-seam {
+  stroke: #1a0c06;
+  stroke-linecap: round;
+  opacity: 0.88;
+  transition: stroke 0.35s ease, filter 0.35s ease, opacity 0.35s ease;
+}
+
+.artifact__bball-seam--thin {
+  opacity: 0.55;
+}
+
+.artifact--basketball.artifact--hovered .artifact__bball-seam {
+  stroke: #3d1a08;
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(255, 180, 80, 0.95));
+}
+
+.artifact--basketball.artifact--hovered .artifact__bball-seam--thin {
+  opacity: 0.85;
+  filter: drop-shadow(0 0 3px rgba(255, 160, 60, 0.7));
+}
+
+.artifact__bball-highlight {
+  transition: opacity 0.35s ease;
+}
+
+.artifact__bball-specular {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.08) 28%,
+    transparent 52%
+  );
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: artifact-bball-shine 5s ease-in-out infinite;
+}
+
+@keyframes artifact-bball-drift {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes artifact-bball-shine {
+  0%, 100% { opacity: 0.55; transform: translateX(0); }
+  50%      { opacity: 0.9; transform: translateX(6%); }
+}
+
+/* ── Journal — poet's leather collectible ───────────────── */
+
+.artifact--journal {
+  --artifact-shadow: rgba(255, 180, 84, 0.32);
+}
+
+.artifact--journal .artifact__object--journal {
+  width: 68px;
+  height: 88px;
+  filter: drop-shadow(0 0 16px rgba(255, 170, 80, 0.32));
+  transition: filter 0.4s ease;
+}
+
+.artifact--journal.artifact--hovered .artifact__object--journal {
+  filter: drop-shadow(0 0 28px rgba(255, 190, 100, 0.55));
+}
+
+.artifact__journal-scene {
+  width: 100%;
+  height: 100%;
+  perspective: 220px;
+  animation: artifact-journal-float 5.5s ease-in-out infinite;
+}
+
+@keyframes artifact-journal-float {
+  0%, 100% { transform: translateY(0) rotateZ(0deg); }
+  50%      { transform: translateY(-5px) rotateZ(0.6deg); }
+}
+
+.artifact__journal-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.artifact__journal-edges {
+  position: absolute;
+  right: -3px;
+  top: 5px;
+  bottom: 5px;
+  width: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2px 0;
+  z-index: 0;
+}
+
+.artifact__journal-edges span {
+  display: block;
+  height: 1px;
+  background: rgba(245, 235, 210, 0.22);
+  box-shadow: 0 0 2px rgba(255, 220, 160, 0.08);
+}
+
+.artifact__journal-pages {
+  position: absolute;
+  inset: 4px 5px 4px 9px;
+  background: linear-gradient(180deg, #f5eed8 0%, #e8dcc4 100%);
+  border-radius: 0 3px 3px 0;
+  box-shadow: inset -1px 0 3px rgba(0, 0, 0, 0.12);
+  z-index: 1;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.artifact__journal-page-lines {
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  opacity: 0.35;
+}
+
+.artifact__journal-page-lines span {
+  display: block;
+  height: 1px;
+  background: rgba(80, 60, 40, 0.25);
+  border-radius: 1px;
+}
+
+.artifact__journal-page-lines span:nth-child(1) { width: 88%; }
+.artifact__journal-page-lines span:nth-child(2) { width: 72%; }
+.artifact__journal-page-lines span:nth-child(3) { width: 80%; }
+.artifact__journal-page-lines span:nth-child(4) { width: 60%; }
+
+.artifact__journal-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 3px 6px 6px 3px;
+  overflow: hidden;
+  box-shadow:
+    2px 4px 14px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 220, 160, 0.12);
+}
+
+.artifact__journal-cover-texture {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(255, 200, 120, 0.08), transparent 50%),
+    linear-gradient(155deg, #2a1810 0%, #1a0f0a 45%, #120a06 100%);
+  opacity: 0.95;
+}
+
+.artifact__journal-cover-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }
 
 .artifact__journal-spine {
@@ -148,71 +324,195 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 6px;
-  background: linear-gradient(180deg, #ffb454, #c47a20);
-  border-radius: 14px 0 0 14px;
+  width: 7px;
+  z-index: 4;
+  background: linear-gradient(90deg, #0d0806, #3d2210 40%, #5c3518 70%, #2a1810);
+  border-radius: 3px 0 0 3px;
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.4);
 }
 
-.artifact__journal-lines {
+.artifact__journal-cover-face {
+  position: relative;
+  z-index: 2;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-top: 6px;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 6px 0 10px;
+  text-align: center;
 }
 
-.artifact__journal-lines span {
-  display: block;
-  height: 2px;
-  border-radius: 1px;
-  background: rgba(255, 180, 84, 0.35);
+.artifact__journal-author {
+  font-family: var(--font-mono);
+  font-size: 5.5px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 200, 120, 0.55);
+  text-transform: uppercase;
+  transition: color 0.35s ease, text-shadow 0.35s ease;
 }
 
-.artifact__journal-lines span:nth-child(1) { width: 80%; }
-.artifact__journal-lines span:nth-child(2) { width: 60%; }
-.artifact__journal-lines span:nth-child(3) { width: 70%; }
+.artifact__journal-title {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  background: linear-gradient(
+    160deg,
+    #fff8e8 0%,
+    #ffd878 22%,
+    #ffb454 48%,
+    #c47a20 72%,
+    #ffe8b0 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+  transition: filter 0.35s ease, background-position 0.6s ease;
+}
 
-.artifact__journal-page {
+.artifact__journal-vol {
+  font-family: var(--font-mono);
+  font-size: 5px;
+  letter-spacing: 0.22em;
+  color: rgba(255, 190, 100, 0.5);
+  margin-top: 2px;
+  transition: color 0.35s ease;
+}
+
+.artifact__journal-emboss {
   position: absolute;
-  top: 6px;
-  right: -2px;
-  width: 22px;
-  height: 58px;
-  background: rgba(255, 245, 220, 0.08);
-  border: 1px solid rgba(255, 180, 84, 0.2);
-  border-radius: 0 6px 6px 0;
-  transform-origin: left center;
-  animation: artifact-page-flutter 3s ease-in-out infinite;
+  inset: 8px 10px 8px 12px;
+  border: 1px solid rgba(255, 200, 120, 0.08);
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-@keyframes artifact-page-flutter {
-  0%, 100% { transform: rotateY(0deg) rotateZ(0deg); }
-  40%      { transform: rotateY(18deg) rotateZ(2deg); }
-  70%      { transform: rotateY(-8deg) rotateZ(-1deg); }
+.artifact__journal-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  z-index: 3;
+  pointer-events: none;
 }
 
-/* ── Terminal ───────────────────────────────────────────── */
+.artifact__journal-corner--tl {
+  top: 5px;
+  right: 5px;
+  border-top: 1px solid rgba(255, 190, 90, 0.45);
+  border-right: 1px solid rgba(255, 190, 90, 0.45);
+}
+
+.artifact__journal-corner--br {
+  bottom: 5px;
+  right: 5px;
+  border-bottom: 1px solid rgba(255, 190, 90, 0.35);
+  border-right: 1px solid rgba(255, 190, 90, 0.35);
+}
+
+.artifact__journal-ribbon {
+  position: absolute;
+  top: -2px;
+  right: 14px;
+  width: 6px;
+  height: 22px;
+  z-index: 5;
+  background: linear-gradient(180deg, #c47a20, #8b4518);
+  border-radius: 0 0 2px 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transform-origin: top center;
+  animation: artifact-ribbon-sway 6s ease-in-out infinite;
+}
+
+@keyframes artifact-ribbon-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(4deg); }
+}
+
+.artifact__journal-pages {
+  animation: artifact-page-flutter-idle 7s ease-in-out infinite;
+}
+
+@keyframes artifact-page-flutter-idle {
+  0%, 88%, 100% { transform: translateX(0); }
+  92%           { transform: translateX(1.5px) rotateZ(0.3deg); }
+  96%           { transform: translateX(-0.5px); }
+}
+
+.artifact--journal.artifact--hovered .artifact__journal-cover {
+  transform: rotateY(-12deg) rotateZ(-1.5deg);
+}
+
+.artifact--journal.artifact--hovered .artifact__journal-pages {
+  transform: translateX(3px);
+  animation: none;
+}
+
+.artifact--journal.artifact--hovered .artifact__journal-title {
+  background-position: 100% center;
+  filter: drop-shadow(0 0 10px rgba(255, 190, 90, 0.85)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.artifact--journal.artifact--hovered .artifact__journal-author,
+.artifact--journal.artifact--hovered .artifact__journal-vol {
+  color: rgba(255, 210, 140, 0.75);
+}
+
+/* ── Terminal — refined collectible ───────────────────── */
+
+.artifact--terminal {
+  --artifact-shadow: rgba(100, 200, 255, 0.25);
+}
+
+.artifact--terminal .artifact__object--terminal {
+  filter: drop-shadow(0 0 14px rgba(100, 200, 255, 0.28));
+  transition: filter 0.4s ease;
+}
+
+.artifact--terminal.artifact--hovered .artifact__object--terminal {
+  filter: drop-shadow(0 0 24px rgba(100, 200, 255, 0.5));
+}
 
 .artifact--terminal .artifact__glass {
-  width: 108px;
-  height: 72px;
+  width: 112px;
+  height: 76px;
   --artifact-glow: rgba(100, 200, 255, 0.35);
   --artifact-glow-hover: rgba(100, 200, 255, 0.65);
+  border-radius: 8px;
+  box-shadow:
+    0 0 24px var(--artifact-glow),
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .artifact__terminal {
-  padding: 6px 8px 8px;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.artifact__terminal-screen {
+  flex: 1;
+  padding: 4px 8px 8px;
   font-family: var(--font-mono);
   font-size: 7px;
   line-height: 1.55;
-  color: rgba(140, 220, 160, 0.9);
+  color: rgba(140, 220, 160, 0.92);
+  text-shadow: 0 0 8px rgba(100, 220, 140, 0.35);
 }
 
 .artifact__terminal-bar {
   display: flex;
   gap: 3px;
-  margin-bottom: 6px;
-  padding-bottom: 4px;
+  padding: 6px 8px 5px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .artifact__terminal-bar span {
@@ -230,6 +530,21 @@
   content: '▋';
   animation: artifact-cursor-blink 1s step-end infinite;
   color: rgba(140, 220, 160, 0.7);
+}
+
+.artifact__terminal-scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 3px
+  );
+  border-radius: inherit;
+  opacity: 0.5;
 }
 
 @keyframes artifact-cursor-blink {
@@ -359,9 +674,9 @@
 }
 
 @media (max-width: 640px) {
-  .artifact--basketball .artifact__glass { width: 54px; height: 54px; }
-  .artifact__bball { width: 32px; height: 32px; }
-  .artifact--journal .artifact__glass { width: 50px; height: 62px; }
-  .artifact--terminal .artifact__glass { width: 92px; height: 62px; }
-  .artifact__terminal { font-size: 6px; }
+  .artifact--basketball .artifact__object--basketball { width: 64px; height: 64px; }
+  .artifact--journal .artifact__object--journal { width: 58px; height: 76px; }
+  .artifact__journal-title { font-size: 9px; }
+  .artifact--terminal .artifact__glass { width: 96px; height: 66px; }
+  .artifact__terminal-screen { font-size: 6px; }
 }
