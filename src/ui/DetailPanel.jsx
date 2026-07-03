@@ -101,7 +101,11 @@ export default function DetailPanel() {
             </button>
           </div>
 
-          <h2 className="panel-title panel-item">{achievement.title}</h2>
+          <h2 className="panel-title panel-item">
+            {typeof achievement.title === 'string' 
+              ? achievement.title 
+              : <><span className="title-light">{achievement.title.light}</span> <span className="title-heavy">{achievement.title.heavy}</span></>}
+          </h2>
 
           <div
             className="panel-divider panel-item"

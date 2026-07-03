@@ -138,7 +138,7 @@ export default function AsteroidCard() {
         // Child element handles
         const numberEl = chapterEl.querySelector(".mission-number");
         const titleEl  = chapterEl.querySelector(".mission-title");
-        const descEl   = chapterEl.querySelector(".mission-desc");
+        const descGroupEl = chapterEl.querySelector(".mission-desc-group");
         const pillsEl  = chapterEl.querySelector(".mission-pills");
 
         // ── ENTER PHASE ──────────────────────────────────────────────────────
@@ -177,9 +177,9 @@ export default function AsteroidCard() {
 
             // Stage 2: Description + pills (0.35 → 0.65)
             const s2 = Math.max(0, Math.min(1, (t - 0.35) / 0.30));
-            if (descEl) {
-              descEl.style.opacity   = s2;
-              descEl.style.transform = `translateY(${(1 - s2) * 30}px)`;
+            if (descGroupEl) {
+              descGroupEl.style.opacity   = s2;
+              descGroupEl.style.transform = `translateY(${(1 - s2) * 30}px)`;
             }
             if (pillsEl) {
               pillsEl.style.opacity   = s2;
@@ -213,7 +213,7 @@ export default function AsteroidCard() {
             chapterEl.style.opacity = "1";
             if (numberEl) { numberEl.style.opacity = "0.5";  numberEl.style.transform = "translateY(0px)"; }
             if (titleEl)  { titleEl.style.opacity  = "1";    titleEl.style.transform  = "translateY(0px)"; }
-            if (descEl)   { descEl.style.opacity   = "1";    descEl.style.transform   = "translateY(0px)"; }
+            if (descGroupEl){ descGroupEl.style.opacity = "1"; descGroupEl.style.transform = "translateY(0px)"; }
             if (pillsEl)  { pillsEl.style.opacity  = "1";    pillsEl.style.transform  = "translateY(0px)"; }
             if (panelEl)  {
               const mx = mouseRef.current.x * 10;
@@ -235,7 +235,7 @@ export default function AsteroidCard() {
               const titleDrift = t * 50;
               if (numberEl) { numberEl.style.opacity = Math.max(0, 0.5 - t * 1.5);  numberEl.style.transform = `translateY(${-titleDrift * 0.6}px)`; }
               if (titleEl)  { titleEl.style.opacity  = titleFade;  titleEl.style.transform  = `translateY(${-titleDrift}px)`; }
-              if (descEl)   { descEl.style.opacity   = Math.max(0, 1 - t * 3);     descEl.style.transform   = `translateY(${-t * 30}px)`; }
+              if (descGroupEl){ descGroupEl.style.opacity = Math.max(0, 1 - t * 3); descGroupEl.style.transform = `translateY(${-t * 30}px)`; }
               if (pillsEl)  { pillsEl.style.opacity  = Math.max(0, 1 - t * 4);     pillsEl.style.transform  = `translateY(${-t * 20}px)`; }
               if (panelEl)  {
                 const panelFade = Math.max(0, 1 - t * 2);
@@ -266,7 +266,7 @@ export default function AsteroidCard() {
             chapterEl.style.opacity = "0";
             if (numberEl) { numberEl.style.opacity = "0";   numberEl.style.transform = "translateY(40px)"; }
             if (titleEl)  { titleEl.style.opacity  = "0";   titleEl.style.transform  = "translateY(70px)"; }
-            if (descEl)   { descEl.style.opacity   = "0";   descEl.style.transform   = "translateY(30px)"; }
+            if (descGroupEl){ descGroupEl.style.opacity = "0"; descGroupEl.style.transform = "translateY(30px)"; }
             if (pillsEl)  { pillsEl.style.opacity  = "0";   pillsEl.style.transform  = "translateY(20px)"; }
             if (panelEl)  { panelEl.style.opacity  = "0";   panelEl.style.transform  = "scale(0.94)"; panelEl.style.pointerEvents = "none"; }
           }
@@ -456,7 +456,23 @@ export default function AsteroidCard() {
               <span className="title-heavy">{ach.title.heavy}</span>
             </h2>
 
-            <p className="mission-desc">{ach.summary}</p>
+            <div className="mission-desc-group">
+              <p className="mission-desc">{ach.summary}</p>
+
+              {ach.objective && (
+                <div className="mission-objective">
+                  <span className="objective-label">OBJECTIVE</span>
+                  <p className="objective-text">{ach.objective}</p>
+                </div>
+              )}
+
+              {ach.highlight && (
+                <div className="mission-highlight">
+                  <span className="highlight-label">KEY HIGHLIGHT</span>
+                  <p className="highlight-text">→ {ach.highlight}</p>
+                </div>
+              )}
+            </div>
 
             <div className="mission-pills">
               <span className="mission-pill">{ach.category}</span>
@@ -481,8 +497,8 @@ export default function AsteroidCard() {
                   <span className="data-value">{ach.details.role}</span>
                 </div>
                 <div className="data-row">
-                  <span className="data-label">YEAR</span>
-                  <span className="data-value">{ach.details.period}</span>
+                  <span className="data-label">FOCUS</span>
+                  <span className="data-value">{ach.details.focus}</span>
                 </div>
                 <div className="data-row">
                   <span className="data-label">STATUS</span>

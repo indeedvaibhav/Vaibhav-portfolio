@@ -72,13 +72,42 @@
   color: var(--accent-color);
 }
 
+.mission-desc-group {
+  margin-bottom: 32px;
+  max-width: 460px;
+  will-change: transform, opacity;
+}
+
 .mission-desc {
   font-family: var(--font-body);
   font-size: 1rem;
   color: #8891a6;
-  margin-bottom: 32px;
-  max-width: 460px;
-  will-change: transform, opacity;
+  margin-bottom: 16px;
+}
+
+.mission-objective, .mission-highlight {
+  margin-bottom: 12px;
+}
+
+.mission-highlight {
+  margin-bottom: 0;
+}
+
+.objective-label, .highlight-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(238,241,247,0.4);
+  margin-bottom: 4px;
+}
+
+.objective-text, .highlight-text {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: #eef1f7;
+  margin: 0;
 }
 
 .mission-pills {
