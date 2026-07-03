@@ -558,10 +558,10 @@ export default function AsteroidCard() {
                 </a>
               )}
 
-              {ach.id === 'tech-certs' && ach.certs && (
+              {ach.id === 'tech-certs' && Array.isArray(ach.certs) && (
                 <div className="custom-mission-content">
                   <div className="filter-pills-row">
-                    {['All', 'Java', 'Spring Boot', 'DSA', 'AWS', 'AI/ML', 'Web'].map(f => (
+                    {['All', 'Java', 'Spring Boot', 'DSA', 'AWS', 'AI/ML', 'Web'].map((f) => (
                       <button 
                         key={f} 
                         className={`filter-pill tech-filter ${techFilter === f ? 'active' : ''}`}
@@ -575,24 +575,31 @@ export default function AsteroidCard() {
                     ))}
                   </div>
                   <div className="custom-grid">
-                    {ach.certs.map((cert, idx) => (
-                      <div key={idx} className="tech-card-wrapper custom-card tech-card" data-category={cert.domain}>
-                        <div className="card-top-pill">{cert.domain.toUpperCase()}</div>
-                        <div className="card-middle-title">{cert.name}</div>
-                        <div className="card-bottom-row">
-                          <span className="card-issuer">{cert.issuer}</span>
-                          <span className="card-year">{cert.year}</span>
+                    {(ach.certs || []).map((cert, idx) => {
+                      if (!cert) return null;
+                      return (
+                        <div
+                          key={idx}
+                          className="tech-card-wrapper custom-card tech-card"
+                          data-category={cert.domain ?? ''}
+                        >
+                          <div className="card-top-pill">{(cert.domain ?? '').toUpperCase()}</div>
+                          <div className="card-middle-title">{cert.name ?? ''}</div>
+                          <div className="card-bottom-row">
+                            <span className="card-issuer">{cert.issuer ?? ''}</span>
+                            <span className="card-year">{cert.year ?? ''}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
-              {ach.id === 'legacy' && ach.legacyItems && (
+              {ach.id === 'legacy' && Array.isArray(ach.legacyItems) && (
                 <div className="custom-mission-content">
                   <div className="filter-pills-row">
-                    {['🏀 Basketball', '🏃 Athletics', '✍️ Writing', '👑 Leadership'].map(f => (
+                    {['🏀 Basketball', '🏃 Athletics', '✍️ Writing', '👑 Leadership'].map((f) => (
                       <button 
                         key={f} 
                         className={`filter-pill legacy-filter ${legacyFilter === f ? 'active' : ''}`}
@@ -624,16 +631,23 @@ export default function AsteroidCard() {
                     </div>
                   </div>
                   <div className="custom-grid">
-                    {ach.legacyItems.map((item, idx) => (
-                      <div key={idx} className="legacy-card-wrapper custom-card legacy-card" data-category={item.category}>
-                        <div className="card-top-pill">{item.level.toUpperCase()}</div>
-                        <div className="card-middle-title">{item.name}</div>
-                        <div className="card-bottom-row">
-                          <span className="card-issuer">{item.event}</span>
-                          <span className="card-year">{item.year}</span>
+                    {(ach.legacyItems || []).map((item, idx) => {
+                      if (!item) return null;
+                      return (
+                        <div
+                          key={idx}
+                          className="legacy-card-wrapper custom-card legacy-card"
+                          data-category={item.category ?? ''}
+                        >
+                          <div className="card-top-pill">{(item.level ?? '').toUpperCase()}</div>
+                          <div className="card-middle-title">{item.name ?? ''}</div>
+                          <div className="card-bottom-row">
+                            <span className="card-issuer">{item.event ?? ''}</span>
+                            <span className="card-year">{item.year ?? ''}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

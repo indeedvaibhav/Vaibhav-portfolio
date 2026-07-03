@@ -114,17 +114,19 @@ export default function DetailPanel() {
 
           <p className="panel-description panel-item">{achievement.description}</p>
 
-          <div className="panel-section panel-item">
-            <h3 className="panel-section-title">DETAILS</h3>
-            <div className="panel-details">
-              {Object.entries(achievement.details).map(([key, val]) => (
-                <div key={key} className="panel-detail-row">
-                  <span className="panel-detail-key">{key.toUpperCase()}</span>
-                  <span className="panel-detail-val">{val}</span>
-                </div>
-              ))}
+          {achievement.details && (
+            <div className="panel-section panel-item">
+              <h3 className="panel-section-title">DETAILS</h3>
+              <div className="panel-details">
+                {Object.entries(achievement.details).map(([key, val]) => (
+                  <div key={key} className="panel-detail-row">
+                    <span className="panel-detail-key">{key.toUpperCase()}</span>
+                    <span className="panel-detail-val">{val}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {Object.keys(achievement.links).length > 0 && (
             <div className="panel-section panel-item">
