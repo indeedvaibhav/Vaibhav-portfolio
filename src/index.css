@@ -3,7 +3,7 @@
    Design System & Global Styles
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@400;500;700;900&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@300;400;500;600;700;800&family=Cabinet+Grotesk:wght@400;500;700;900&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
 
 /* ─── Custom Properties ─────────────────────── */
 :root {
@@ -197,52 +197,32 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: var(--space-xl);
 }
 
-/* SIGNAL DETECTED eyebrow */
-.intro-screen__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.28em;
-  color: var(--accent-gold);
-  text-transform: uppercase;
-  display: flex; align-items: center; gap: 12px;
-  opacity: 0.7;
-}
-.intro-screen__dot {
-  display: inline-block;
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--accent-gold);
-  box-shadow: 0 0 8px 2px rgba(255,170,51,0.5);
-  animation: blink 2s ease-in-out infinite;
-}
-
-/* "Enter the Core" headline */
+/* Headline */
 .intro-screen__headline {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(44px, 8vw, 88px);
-  line-height: 1.05;
-  letter-spacing: -0.025em;
-  color: var(--text-primary);
+  font-size: clamp(2.2rem, 5.5vw, 5rem);
+  text-align: center;
+  line-height: 1.1;
   margin: 0;
 }
-.intro-screen__headline-accent {
-  background: linear-gradient(120deg, var(--accent-gold) 0%, #fff 60%, var(--accent-gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  background-size: 200% auto;
-  animation: pl-shimmer 3s linear infinite;
+.intro-screen__headline-line {
+  display: block;
+  font-weight: 300;
+  color: #eef1f7;
 }
-@keyframes pl-shimmer {
-  0%   { background-position: 0% center; }
-  100% { background-position: 200% center; }
+.intro-screen__headline-line--accent {
+  font-weight: 800;
+  color: #ffb454;
 }
 
 /* Sub tagline */
 .intro-screen__sub {
-  font-size: 14px; line-height: 1.6;
-  color: var(--text-secondary);
-  max-width: 360px;
-  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: rgba(238, 241, 247, 0.45);
+  letter-spacing: 0.08em;
+  margin-top: 20px;
+  margin-bottom: 36px;
 }
 
 /* CTA button */
@@ -252,30 +232,38 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: 16px 34px;
   border: 1px solid rgba(255,170,51,0.35);
   border-radius: var(--radius-pill);
-  background: rgba(255,170,51,0.05);
+  background: transparent;
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 12px; letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.3s, background 0.3s, transform 0.3s, box-shadow 0.3s;
   overflow: hidden;
-}
-.intro-screen__cta:hover {
-  border-color: var(--accent-gold);
-  background: rgba(255,170,51,0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(255,170,51,0.15);
-}
-.intro-screen__cta:active { transform: translateY(0); }
-.intro-screen__cta-text { position: relative; z-index: 1; }
-.intro-screen__cta-pulse {
-  position: absolute; inset: 0; border-radius: inherit;
-  background: radial-gradient(circle at center, rgba(255,170,51,0.12), transparent 70%);
   opacity: 0;
-  transition: opacity 0.3s;
 }
-.intro-screen__cta:hover .intro-screen__cta-pulse { opacity: 1; }
+.intro-screen__cta-bg {
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 170, 51, 0.05);
+  z-index: 0;
+}
+.intro-screen__cta-shimmer {
+  position: absolute;
+  left: -60%;
+  top: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+.intro-screen__cta-text { position: relative; z-index: 3; }
+.intro-screen__cta-icon { position: relative; z-index: 3; }
 .intro-screen__cta--exit {
   opacity: 0.4; pointer-events: none;
   transform: scale(0.97);
@@ -291,15 +279,28 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* Footer identity */
 .intro-screen__footer {
-  position: absolute; bottom: 28px;
-  display: flex; gap: 10px; align-items: center;
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
   font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.18);
+  font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+  letter-spacing: 0.12em;
+  color: rgba(238, 241, 247, 0.35);
+  white-space: nowrap;
+  text-align: center;
   z-index: 2;
 }
-.intro-screen__footer-mark { color: rgba(255,255,255,0.3); }
-.intro-screen__footer-sep { color: rgba(255,170,51,0.25); }
+.intro-screen__footer-sep { color: rgba(255, 170, 51, 0.25); }
+.intro-screen__footer-br { display: none; }
+@media (max-width: 479px) {
+  .intro-screen__footer {
+    white-space: normal;
+    width: 90vw;
+  }
+  .intro-screen__footer-br { display: block; }
+  .intro-screen__footer-sep--desktop { display: none; }
+}
 
 /* ─── Crystal Transition Overlay ─────────────── */
 .crystal-overlay {

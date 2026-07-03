@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import useStore from "../hooks/useStore";
+
+const HEADLINE_LINES = [
+  { text: "Let's take a ride", accent: false },
+  { text: "through my", accent: false },
+  { text: "constellation", accent: true },
+  { text: "of ideas.", accent: false },
+];
 
 export default function IntroScreen() {
   const setPhase = useStore((s) => s.setPhase);
@@ -7,13 +15,20 @@ export default function IntroScreen() {
   const [exiting, setExiting] = useState(false);
   const canvasRef = useRef(null);
   const animRef = useRef(null);
+  const lineRefs = useRef([]);
+  const subtitleRef = useRef(null);
+  const buttonRef = useRef(null);
+  const buttonBgRef = useRef(null);
+  const buttonTextRef = useRef(null);
+  const buttonIconRef = useRef(null);
+  const shimmerRef = useRef(null);
+  const footerRef = useRef(null);
+  const gsapCtx = useRef(null);
 
-  // Fade in on mount
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
   }, []);
 
-  // Draw animated particle field on the background canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -26,7 +41,6 @@ export default function IntroScreen() {
     resize();
     window.addEventListener("resize", resize);
 
-    // Generate particles
     const PARTICLE_COUNT = 80;
     const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
       x: Math.random() * window.innerWidth,
@@ -44,12 +58,10 @@ export default function IntroScreen() {
       t += 0.012;
 
       particles.forEach((p) => {
-        // Drift
         p.x += p.vx;
         p.y += p.vy;
         p.pulse += 0.02;
 
-        // Wrap
         if (p.x < 0) p.x = canvas.width;
         if (p.x > canvas.width) p.x = 0;
         if (p.y < 0) p.y = canvas.height;
@@ -62,7 +74,6 @@ export default function IntroScreen() {
         ctx.fill();
       });
 
-      // Draw faint connection lines between close particles
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -90,13 +101,109 @@ export default function IntroScreen() {
     };
   }, []);
 
-  const handleStart = () => {
+  useEffect(() => {
+    if (!visible) return;
+
+    gsapCtx.current = gsap.context(() => {
+      const lines = lineRefs.current.filter(Boolean);
+
+      gsap.from(lines, {
+        opacity: 0,
+        y: -40,
+        duration: 0.9,
+        stagger: 0.15,
+        ease: "back.out(1.4)",
+        delay: 0.2,
+      });
+
+      gsap.from(subtitleRef.current, {
+        opacity: 0,
+        duration: 0.6,
+        delay: 0.9,
+      });
+
+      gsap.set(buttonRef.current, { opacity: 0, scale: 0.8, y: 20 });
+
+      gsap.to(buttonRef.current, {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.7,
+        ease: "back.out(2)",
+        delay: 0.8,
+        onComplete: () => {
+          gsap.to(shimmerRef.current, {
+            x: "260%",
+            duration: 0.7,
+            ease: "power2.inOut",
+            repeat: -1,
+            repeatDelay: 2.5,
+          });
+        },
+      });
+
+      gsap.from(footerRef.current, {
+        opacity: 0,
+        y: 10,
+        duration: 0.8,
+        delay: 1.2,
+        ease: "power2.out",
+      });
+    });
+
+    return () => gsapCtx.current?.revert();
+  }, [visible]);
+
+  const triggerGlitchTransition = () => {
     if (exiting) return;
     setExiting(true);
-    // Slight delay to let the exit animation start before mounting transition
     setTimeout(() => {
       setPhase("transition");
     }, 650);
+  };
+
+  const handleStart = () => {
+    if (exiting) return;
+    gsap.to(buttonRef.current, {
+      scale: 0.95,
+      duration: 0.1,
+      yoyo: true,
+      repeat: 1,
+      ease: "power2.inOut",
+      onComplete: () => triggerGlitchTransition(),
+    });
+  };
+
+  const handleMouseEnter = () => {
+    gsap.to(buttonRef.current, {
+      scale: 1.05,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+    gsap.to(buttonBgRef.current, {
+      background: "#ffb454",
+      duration: 0.3,
+    });
+    gsap.to([buttonTextRef.current, buttonIconRef.current], {
+      color: "#05060a",
+      duration: 0.3,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    gsap.to(buttonRef.current, {
+      scale: 1,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+    gsap.to(buttonBgRef.current, {
+      background: "rgba(255, 170, 51, 0.05)",
+      duration: 0.3,
+    });
+    gsap.to([buttonTextRef.current, buttonIconRef.current], {
+      color: "#e8e6f0",
+      duration: 0.3,
+    });
   };
 
   return (
@@ -105,55 +212,75 @@ export default function IntroScreen() {
         exiting ? "intro-screen--exit" : ""
       }`}
     >
-      {/* Particle field canvas */}
       <canvas ref={canvasRef} className="intro-screen__canvas" />
-
-      {/* Radial spotlight */}
       <div className="intro-screen__spotlight" />
-
-      {/* Horizontal grid lines */}
       <div className="intro-screen__grid" />
 
-      {/* Content */}
       <div className="intro-screen__content">
-        <div className="intro-screen__eyebrow">
-          <span className="intro-screen__dot" />
-          SIGNAL DETECTED
-          <span className="intro-screen__dot" />
-        </div>
-
         <h1 className="intro-screen__headline">
-          Enter<br />
-          <span className="intro-screen__headline-accent">the Core</span>
+          {HEADLINE_LINES.map((line, i) => (
+            <span
+              key={line.text}
+              ref={(el) => {
+                lineRefs.current[i] = el;
+              }}
+              className={`intro-screen__headline-line${
+                line.accent ? " intro-screen__headline-line--accent" : ""
+              }`}
+            >
+              {line.text}
+            </span>
+          ))}
         </h1>
 
-        <p className="intro-screen__sub">
-          A journey through achievements, built in deep space.
+        <p ref={subtitleRef} className="intro-screen__sub">
+          7 missions. 1 core. All mine.
         </p>
 
         <button
+          ref={buttonRef}
           id="intro-get-started"
           className={`intro-screen__cta ${exiting ? "intro-screen__cta--exit" : ""}`}
           onClick={handleStart}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           aria-label="Get started — enter the portfolio"
         >
-          <span className="intro-screen__cta-pulse" />
-          <span className="intro-screen__cta-text">GET STARTED</span>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M1 7H13M8 2L13 7L8 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <span ref={buttonBgRef} className="intro-screen__cta-bg" />
+          <span ref={shimmerRef} className="intro-screen__cta-shimmer" aria-hidden="true" />
+          <span ref={buttonTextRef} className="intro-screen__cta-text">
+            GET STARTED
+          </span>
+          <svg
+            ref={buttonIconRef}
+            className="intro-screen__cta-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M1 7H13M8 2L13 7L8 12"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
 
         <div className="intro-screen__hint">Click to activate the sequence</div>
       </div>
 
-      {/* Bottom identity strip */}
-      <div className="intro-screen__footer">
-        <span className="intro-screen__footer-mark">VAIBHAV TRIPATHI</span>
-        <span className="intro-screen__footer-sep">·</span>
-        <span>B.Tech CSE</span>
-        <span className="intro-screen__footer-sep">·</span>
-        <span>PSIT Kanpur</span>
+      <div ref={footerRef} className="intro-screen__footer">
+        VAIBHAV TRIPATHI
+        <span className="intro-screen__footer-sep intro-screen__footer-sep--desktop">
+          {" "}
+          ·{" "}
+        </span>
+        <br className="intro-screen__footer-br" />
+        B.Tech CSE · PSIT Kanpur
       </div>
     </div>
   );
