@@ -57,13 +57,13 @@ export const CAMERA_PATH_POINTS = [
 // Offset ~2.5–3 units laterally from the camera path centers,
 // alternating sides for visual variety.
 export const ASTEROID_POSITIONS = [
-  [5, 2, -22],         // A1 RailSage      — right of path
-  [-5, -1, -42],       // A2 TaskFlow      — left
-  [5, 3, -62],         // A3 CivicSentinel — right
-  [-5, -1.5, -82],     // A4 ParkSense     — left
-  [5, 4, -102],        // A5 Portfolio     — right
-  [-5, 0.5, -122],     // A6 Certifications— left
-  [5, 0.5, -142],      // A7 Internships   — right
+  [5, 1.5, -22],       // A1 RailSage      — right side
+  [0, -0.5, -42],      // A2 TaskFlow      — right side (camera is at x:-2.5)
+  [5, 2.5, -62],       // A3 CivicSentinel — right side
+  [0, -1, -82],        // A4 ParkSense     — right side (camera is at x:-2.5)
+  [5, 3.5, -102],      // A5 Portfolio     — right side
+  [0, 1, -122],        // A6 Certifications— right side (camera is at x:-2.5)
+  [5, 0, -142],        // A7 Internships   — right side
 ];
 
 // ─── Per-asteroid scroll focus ─────────────────────────────

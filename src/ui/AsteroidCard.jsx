@@ -432,12 +432,10 @@ export default function AsteroidCard() {
   return (
     <div className="asteroid-card-overlay" ref={containerRef}>
       {achievements.map((ach, i) => {
-        const isRightAligned = i % 2 !== 0; // Odd indices (1, 3, 5) have asteroids on the left, so text goes right
-        
         return (
           <div
             key={ach.id}
-            className={`mission-chapter ${isRightAligned ? 'mission-chapter--right' : 'mission-chapter--left'}`}
+            className="mission-chapter"
             ref={(el) => (cardElemsRef.current[i] = el)}
             style={{
               "--accent-color": CARD_COLORS[i] || ach.color,
@@ -456,8 +454,6 @@ export default function AsteroidCard() {
             >
               {ach.title}
             </h2>
-
-            <p className="mission-desc">{ach.summary}</p>
 
             <div className="mission-pills">
               <span className="mission-pill">{ach.category}</span>
