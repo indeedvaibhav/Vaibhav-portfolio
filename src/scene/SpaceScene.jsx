@@ -46,16 +46,7 @@ export default function SpaceScene() {
       {/* Ambient fill — raise intensity so the dark rock side isn't pure black */}
       <ambientLight intensity={SCENE.ambientIntensity} />
 
-      {/* Core glow — warm point light at origin */}
-      <pointLight
-        position={[0, 0, 0]}
-        color={SCENE.pointLightColor}
-        intensity={SCENE.pointLightIntensity}
-        distance={50}
-        decay={2}
-      />
-
-      {/* Directional light at 45° — essential for normal maps to show depth */}
+      {/* Sun point lights live on CoreSphere at the origin */}
       <directionalLight
         position={[6, 8, 4]}
         color="#c8d8ff"
