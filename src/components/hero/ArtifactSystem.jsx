@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
 import { ARTIFACTS } from './artifactData';
 import OrbitingArtifact from './OrbitingArtifact';
 import ArtifactTooltip from './ArtifactTooltip';
@@ -11,6 +12,62 @@ const MAGNETIC_RADIUS = 150;
 const MAGNETIC_STRENGTH = 0.1;
 const DRAG_THRESHOLD = 6;
 const MOMENTUM_FACTOR = 0.55;
+
+function playClickAnimation(id, el, onComplete) {
+  if (id === 'basketball') {
+    const ball = el.querySelector('.artifact__bball-3d');
+    if (!ball) {
+      onComplete();
+      return;
+    }
+    el.classList.add('artifact--click-spin');
+    gsap.killTweensOf(ball);
+    gsap.set(ball, { rotateY: 0, rotateX: 8 });
+    gsap.to(ball, {
+      rotateY: 720,
+      duration: 0.75,
+      ease: 'power3.out',
+      onComplete: () => {
+        el.classList.remove('artifact--click-spin');
+        gsap.set(ball, { clearProps: 'transform' });
+        onComplete();
+      },
+    });
+    return;
+  }
+
+  if (id === 'journal') {
+    const cover = el.querySelector('.artifact__journal-cover');
+    if (!cover) {
+      onComplete();
+      return;
+    }
+    el.classList.add('artifact--click-open');
+    gsap.killTweensOf(cover);
+    gsap.set(cover, { rotateY: 0, transformOrigin: 'left center' });
+    gsap.to(cover, {
+      rotateY: -34,
+      duration: 0.5,
+      ease: 'power2.out',
+      onComplete: () => {
+        gsap.to(cover, {
+          rotateY: 0,
+          duration: 0.35,
+          delay: 0.08,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            el.classList.remove('artifact--click-open');
+            gsap.set(cover, { clearProps: 'transform' });
+            onComplete();
+          },
+        });
+      },
+    });
+    return;
+  }
+
+  onComplete();
+}
 
 function createPhysicsState(config) {
   const x = Math.cos(config.startAngle) * config.radius;
@@ -53,6 +110,19 @@ export default function ArtifactSystem() {
 
   const [activeCard, setActiveCard] = useState(null);
   const [cardPos, setCardPos] = useState({ x: 0, y: 0 });
+
+  const applyTransforms = useCallback(() => {
+    ARTIFACTS.forEach((config) => {
+      const phys = physicsRef.current[config.id];
+      const el = artifactRefs.current[config.id];
+      if (!phys || !el) return;
+      el.style.transform = `translate3d(${phys.x}px, ${phys.y}px, 0)`;
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    applyTransforms();
+  }, [applyTransforms]);
 
   const getSunCenter = useCallback(() => {
     const sun = document.querySelector('.hero-sun-wrap');
@@ -208,11 +278,13 @@ export default function ArtifactSystem() {
         }
       }
 
-      if (!phys.dragMoved) {
+      if (!phys.dragMoved && el) {
         const config = ARTIFACTS.find((a) => a.id === id);
         const pos = getScreenPos(phys);
-        setActiveCard(config);
-        setCardPos({ x: pos.x, y: pos.y });
+        playClickAnimation(id, el, () => {
+          setActiveCard(config);
+          setCardPos({ x: pos.x, y: pos.y });
+        });
       }
 
       phys.dragMoved = false;

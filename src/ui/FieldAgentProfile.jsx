@@ -91,12 +91,14 @@ export default function FieldAgentProfile() {
 
       <div className="fap-content" ref={contentRef}>
         <div className="fap-left">
-          <img 
-            ref={imageRef}
-            src="/assets/profile.jpg" 
-            alt="Field Agent Profile" 
-            className="fap-photo"
-          />
+          <div className="fap-photo-wrap">
+            <img
+              ref={imageRef}
+              src="/assets/profile.svg"
+              alt="Field Agent Profile"
+              className="fap-photo"
+            />
+          </div>
           <div className="fap-status-bar">
             <span className="fap-status-dot">● ACTIVE</span>
             <span className="fap-time">{timeStr}</span>
