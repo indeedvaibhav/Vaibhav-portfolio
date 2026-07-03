@@ -63,9 +63,10 @@ export const CAMERA_PATH_POINTS = [
   [0, 12, -200],       // P31 final wide
 ];
 
-// ─── Asteroid world positions ──────────────────────────────
+// ─── Asteroid world positions ─────────────────────────────
 // Offset ~2.5–3 units laterally from the camera path centers,
 // alternating sides for visual variety.
+export const ASTEROID_POSITIONS = [
   [5, 1.5, -22],       // A1 RailSage      — right side
   [0, -0.5, -42],      // A2 TaskFlow      — right side (camera is at x:-2.5)
   [5, 2.5, -62],       // A3 CivicSentinel — right side
