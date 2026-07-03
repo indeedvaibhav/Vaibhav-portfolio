@@ -520,9 +520,11 @@ export default function AsteroidCard() {
 
             <div className="mission-pills">
               <span className="mission-pill">{ach.category}</span>
-              <span className="mission-pill mission-pill--status">
-                {ach.details.status}
-              </span>
+              {ach.details?.status && (
+                <span className="mission-pill mission-pill--status">
+                  {ach.details.status}
+                </span>
+              )}
             </div>
 
             <div
