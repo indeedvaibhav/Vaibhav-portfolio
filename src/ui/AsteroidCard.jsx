@@ -3,6 +3,7 @@ import { ASTEROID_SCROLL_CENTERS } from "../utils/constants";
 import { achievements } from "../data/achievements";
 import { scrollState } from "../utils/scrollState";
 import "./AsteroidCard.css";
+import "./credentials-gallery.css";
 
 const CARD_COLORS = [
   "#8b5cf6", // RailSage AI
@@ -79,6 +80,15 @@ export default function AsteroidCard() {
   const shatterRectRef                 = useRef(null);     // rect of the panel element
 
   const [currentIndex, setCurrentIndex] = useState(-1);
+  const [selectedCredential, setSelectedCredential] = useState(null);
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setSelectedCredential(null);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   // ── Create 12 fragment divs once on mount ──────────────────────────────────
   useEffect(() => {
@@ -518,6 +528,62 @@ export default function AsteroidCard() {
                 >
                   → {ach.links.live.replace(/^https?:\/\//, '')}
                 </a>
+              )}
+
+              {ach.credentials && (
+                <>
+                  <div className="cg-container" style={{ pointerEvents: 'auto' }}>
+                    <div className="cg-strip">
+                      {ach.credentials.map((cred) => (
+                        <div key={cred.id} className="cg-card" onClick={() => setSelectedCredential(cred)}>
+                          <img src={cred.image} alt={cred.title} className="cg-thumb" />
+                          <div className="cg-bracket cg-bracket-tl"></div>
+                          <div className="cg-bracket cg-bracket-tr"></div>
+                          <div className="cg-bracket cg-bracket-bl"></div>
+                          <div className="cg-bracket cg-bracket-br"></div>
+                          <div className="cg-caption">
+                            <div className="cg-title">{cred.title}</div>
+                            <div className="cg-issuer">{cred.issuer}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ── Slide-Out Reveal Panel (inside mission-panel to slide from behind) ── */}
+                  <div 
+                    className={`cg-reveal-panel ${selectedCredential ? 'active' : ''}`} 
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {selectedCredential && (
+                      <>
+                        <button className="cg-reveal-close" onClick={() => setSelectedCredential(null)}>
+                          [ ESC ]
+                        </button>
+                        <div className="cg-reveal-image-wrap">
+                          <img src={selectedCredential.image} alt={selectedCredential.title} className="cg-reveal-image" />
+                        </div>
+                        <div className="cg-reveal-meta">
+                          <h3 className="cg-reveal-title">{selectedCredential.title}</h3>
+                          <div className="mission-data" style={{ marginTop: '20px' }}>
+                            <div className="data-row" style={{borderBottom: '1px solid rgba(255,255,255,0.06)'}}>
+                              <span className="data-label">ISSUER</span>
+                              <span className="data-value">{selectedCredential.issuer}</span>
+                            </div>
+                            <div className="data-row" style={{borderBottom: '1px solid rgba(255,255,255,0.06)'}}>
+                              <span className="data-label">YEAR</span>
+                              <span className="data-value">{selectedCredential.year}</span>
+                            </div>
+                            <div className="data-row" style={{borderBottom: 'none'}}>
+                              <span className="data-label">CATEGORY</span>
+                              <span className="data-value">{selectedCredential.category}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>

@@ -158,6 +158,54 @@ export const achievements = [
     position: ASTEROID_POSITIONS[6],
     seed: 999,
   },
+  {
+    id: 'tech-certs',
+    title: { light: 'Technical', heavy: 'Certifications' },
+    eyebrow: 'Achievement 08',
+    category: 'Technical',
+    color: '#8b5cf6',
+    desc: 'An archive of technical certifications and ongoing learning.',
+    description: 'An archive of technical certifications and ongoing learning, demonstrating proficiency across modern stacks and methodologies.',
+    summary: 'A collection of technical certificates spanning various web technologies.',
+    details: {
+      role: 'Learner',
+      stack: 'Various Technologies',
+      focus: 'Continuous Learning',
+      status: 'Completed',
+    },
+    tags: ['certifications', 'technical', 'learning'],
+    links: {},
+    position: ASTEROID_POSITIONS[7],
+    seed: 1024,
+    credentials: [
+      { id: 'cert-1', title: 'React Native Advanced', issuer: 'Meta', year: '2024', image: '/assets/profile.jpg', category: 'Frontend' },
+      { id: 'cert-2', title: 'AWS Cloud Practitioner', issuer: 'Amazon', year: '2023', image: '/assets/profile.jpg', category: 'Cloud' }
+    ]
+  },
+  {
+    id: 'leadership-athletics',
+    title: { light: 'Leadership', heavy: '& Athletics' },
+    eyebrow: 'Achievement 09',
+    category: 'Leadership',
+    color: '#fbbf24',
+    desc: 'An archive of leadership roles and athletic milestones.',
+    description: 'An archive of leadership roles, community building efforts, and endurance sports milestones.',
+    summary: 'Leadership roles and marathon achievements.',
+    details: {
+      role: 'Leader & Athlete',
+      stack: 'Community, Endurance',
+      focus: 'Personal Growth',
+      status: 'Active',
+    },
+    tags: ['leadership', 'marathon', 'community'],
+    links: {},
+    position: ASTEROID_POSITIONS[8],
+    seed: 2048,
+    credentials: [
+      { id: 'lead-1', title: 'Tech Lead - Coding Club', issuer: 'PSIT', year: '2023-Present', image: '/assets/profile.jpg', category: 'Leadership' },
+      { id: 'ath-1', title: 'Kanpur Half Marathon', issuer: 'Athletics Org', year: '2024', image: '/assets/profile.jpg', category: 'Athletics' }
+    ]
+  },
 ];
 
 export const coreIdentity = {

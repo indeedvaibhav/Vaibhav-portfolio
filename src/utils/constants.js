@@ -48,15 +48,24 @@ export const CAMERA_PATH_POINTS = [
   [2.5, 0, -142],      // P22 center
   [2, 0, -145],        // P23 depart
 
+  // ── Asteroid 8 (Tech Certs) ──
+  [-2, 1, -159],       // P24 approach
+  [-2.5, 0.5, -162],   // P25 center
+  [-2, 0.5, -165],     // P26 depart
+
+  // ── Asteroid 9 (Leadership) ──
+  [2, -0.5, -179],     // P27 approach
+  [2.5, -1, -182],     // P28 center
+  [2, -1, -185],       // P29 depart
+
   // ── Outro ──
-  [0, 5, -155],        // P24 pull-up
-  [0, 12, -160],       // P25 final wide
+  [0, 5, -195],        // P30 pull-up
+  [0, 12, -200],       // P31 final wide
 ];
 
 // ─── Asteroid world positions ──────────────────────────────
 // Offset ~2.5–3 units laterally from the camera path centers,
 // alternating sides for visual variety.
-export const ASTEROID_POSITIONS = [
   [5, 1.5, -22],       // A1 RailSage      — right side
   [0, -0.5, -42],      // A2 TaskFlow      — right side (camera is at x:-2.5)
   [5, 2.5, -62],       // A3 CivicSentinel — right side
@@ -64,27 +73,31 @@ export const ASTEROID_POSITIONS = [
   [5, 3.5, -102],      // A5 Portfolio     — right side
   [0, 1, -122],        // A6 Certifications— right side (camera is at x:-2.5)
   [5, 0, -142],        // A7 Internships   — right side
+  [0, 0.5, -162],      // A8 Tech Certs    — right side (camera is at x:-2.5)
+  [5, -1, -182],       // A9 Leadership    — right side
 ];
 
 // ─── Per-asteroid scroll focus ─────────────────────────────
-// With 26 control points (25 segments), each segment = 0.04 t.
-// Each asteroid occupies 3 segments (approach/center/depart) = 0.12 t range.
+// With 32 control points (31 segments), each segment = 0.032258 t.
+// Each asteroid occupies 3 segments (approach/center/depart).
 // Centers at midpoint of their 3-segment block.
 export const ASTEROID_SCROLL_CENTERS = [
-  0.16,  // A1 — segments 3-5, center at segment 4
-  0.28,  // A2 — segments 6-8, center at segment 7
-  0.40,  // A3 — segments 9-11, center at segment 10
-  0.52,  // A4 — segments 12-14, center at segment 13
-  0.64,  // A5 — segments 15-17, center at segment 16
-  0.76,  // A6 — segments 18-20, center at segment 19
-  0.88,  // A7 — segments 21-23, center at segment 22
+  0.1290,  // A1 — segments 3-5, center at segment 4
+  0.2258,  // A2 — segments 6-8, center at segment 7
+  0.3225,  // A3 — segments 9-11, center at segment 10
+  0.4193,  // A4 — segments 12-14, center at segment 13
+  0.5161,  // A5 — segments 15-17, center at segment 16
+  0.6129,  // A6 — segments 18-20, center at segment 19
+  0.7096,  // A7 — segments 21-23, center at segment 22
+  0.8064,  // A8 — segments 24-26, center at segment 25
+  0.9032,  // A9 — segments 27-29, center at segment 28
 ];
 
 // Focus = caption visible & clickable. Fade = caption opacity ramps.
-export const FOCUS_RADIUS = 0.04;   // |t - center| < this → fully in focus
-export const FADE_RADIUS = 0.065;   // |t - center| < this → caption fading in/out
-export const INTRO_END = 0.10;      // scroll progress when intro overlay fades out
-export const OUTRO_START = 0.93;    // scroll progress when outro overlay fades in
+export const FOCUS_RADIUS = 0.032;   // |t - center| < this → fully in focus (~1 segment)
+export const FADE_RADIUS = 0.052;    // |t - center| < this → caption fading in/out (~1.6 segments)
+export const INTRO_END = 0.08;       // scroll progress when intro overlay fades out
+export const OUTRO_START = 0.94;     // scroll progress when outro overlay fades in
 
 // ─── Scene ─────────────────────────────────────────────────
 export const SCENE = {
@@ -140,7 +153,7 @@ export const POSTPROCESSING = {
 export const STARFIELD = {
   count: 3000,
   zMin: 30,       // stars start ahead of camera start
-  zMax: -180,     // stars extend past the outro
+  zMax: -220,     // stars extend past the outro
   spreadX: 120,   // lateral spread
   spreadY: 80,    // vertical spread
   minSize: 0.03,
@@ -157,13 +170,14 @@ export const CAMERA = {
   smoothing: 0.08,            // lerp factor for lookAt smoothing
 };
 
-// ─── Category colors ──────────────────────────────────────
 export const CATEGORY_COLORS = {
-  'AI Project': '#6366f1',
-  'Full-Stack': '#10b981',
+  'Hackathon Build': '#6366f1',
+  'Productivity Tool': '#10b981',
   'Civic Tech': '#f59e0b',
-  'Smart Systems': '#06b6d4',
-  'Creative Dev': '#ec4899',
+  'Smart Infrastructure': '#06b6d4',
+  'Creative Engineering': '#ec4899',
   'Credentials': '#8b5cf6',
   'Experience': '#f43f5e',
+  'Technical': '#8b5cf6',
+  'Leadership': '#fbbf24',
 };
