@@ -60,10 +60,10 @@ export const ASTEROID_POSITIONS = [
   [5, 2, -22],         // A1 RailSage      — right of path
   [-5, -1, -42],       // A2 TaskFlow      — left
   [5, 3, -62],         // A3 CivicSentinel — right
-  [-5, -2, -82],       // A4 ParkSense     — left
+  [-5, -1.5, -82],     // A4 ParkSense     — left
   [5, 4, -102],        // A5 Portfolio     — right
-  [-5, 1, -122],       // A6 Certifications— left
-  [5, 0, -142],        // A7 Internships   — right
+  [-5, 0.5, -122],     // A6 Certifications— left
+  [5, 0.5, -142],      // A7 Internships   — right
 ];
 
 // ─── Per-asteroid scroll focus ─────────────────────────────
@@ -88,8 +88,8 @@ export const OUTRO_START = 0.93;    // scroll progress when outro overlay fades 
 
 // ─── Scene ─────────────────────────────────────────────────
 export const SCENE = {
-  bgColor: '#050510',
-  fogColor: '#050510',
+  bgColor: '#05060a',
+  fogColor: '#05060a',
   fogDensity: 0.006,
   ambientIntensity: 0.18,
   pointLightIntensity: 2.5,

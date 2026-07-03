@@ -9,7 +9,6 @@ import { useAudio } from '../hooks/useAudio';
 
 export default function AchievementRock({ achievement, index }) {
   const meshRef = useRef();
-  const glowRef = useRef();
   const tooltipRef = useRef();
   const { playClickSound } = useAudio();
 
@@ -39,39 +38,6 @@ export default function AchievementRock({ achievement, index }) {
 
   const neutralColor = useMemo(() => new THREE.Color(0x888888), []);
   const emissiveColor = useMemo(() => new THREE.Color(achievement.color), [achievement.color]);
-
-  // ── Glow Material ──
-  const glowMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      uniforms: {
-        color: { value: new THREE.Color(achievement.color) },
-        opacity: { value: 0.03 },
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          // Keep glow facing camera
-          vec4 mvPosition = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-          mvPosition.xy += position.xy;
-          gl_Position = projectionMatrix * mvPosition;
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 color;
-        uniform float opacity;
-        varying vec2 vUv;
-        void main() {
-          float dist = distance(vUv, vec2(0.5));
-          float alpha = smoothstep(0.5, 0.0, dist) * opacity;
-          gl_FragColor = vec4(color, alpha);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    });
-  }, [achievement.color]);
 
   const rotAxis = useMemo(() => {
     return new THREE.Vector3(
@@ -110,12 +76,6 @@ export default function AchievementRock({ achievement, index }) {
     const targetIntensity = isNear ? 1 : 0;
     hoverState.current.intensity = THREE.MathUtils.lerp(hoverState.current.intensity, targetIntensity, delta * 8);
 
-    // Apply glow only if active
-    if (glowRef.current) {
-      const isActive = useStore.getState().activeIndex === index;
-      glowRef.current.material.uniforms.opacity.value = isActive ? 0.03 : 0;
-    }
-
     // Apply HTML reticle opacity
     if (tooltipRef.current) {
       tooltipRef.current.style.opacity = hoverState.current.intensity;
@@ -151,12 +111,6 @@ export default function AchievementRock({ achievement, index }) {
         />
       </mesh>
       
-      {/* Background glow */}
-      <mesh ref={glowRef} position={[0, 0, -20]}>
-        <planeGeometry args={[120, 120]} />
-        <primitive object={glowMaterial} attach="material" />
-      </mesh>
-
       {/* HTML Overlay */}
       <Html center style={{ pointerEvents: 'none', zIndex: 5 }}>
         <div ref={tooltipRef} style={{ opacity: 0, transition: 'none' }}>

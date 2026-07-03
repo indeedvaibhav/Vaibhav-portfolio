@@ -20,6 +20,7 @@
   flex-direction: column;
   justify-content: center;
   pointer-events: none;
+  overflow-x: hidden;
 }
 
 .mission-chapter--left {
@@ -53,11 +54,13 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.28);
   will-change: transform, opacity;
+  align-self: flex-start;
+  margin-bottom: -4px;
 }
 
 .mission-title {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5.8vw, 7.2rem); /* Reduced scale */
+  font-size: clamp(2.8rem, 7vw, 6.5rem); /* Reduced scale */
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 0.95;
@@ -72,6 +75,13 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   will-change: transform, opacity;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.mission-title[data-long-title="true"] {
+  font-size: clamp(2.4rem, 5.5vw, 5rem);
+  white-space: normal;
 }
 
 .mission-desc {
@@ -111,15 +121,16 @@
 /* ── Glass info panel ──────────────────────────────────── */
 
 .mission-panel {
-  position: relative;
+  position: absolute;
+  top: min(55vh, 380px);
+  width: 100%;
+  max-width: 480px;
   background: rgba(7, 8, 18, 0.78);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 16px;
   padding: 24px 28px;
-  margin-top: 0px; /* Brought closer to description */
-  width: 100%;
   overflow: hidden;
   will-change: transform, opacity;
   /* pointer-events toggled via JS */

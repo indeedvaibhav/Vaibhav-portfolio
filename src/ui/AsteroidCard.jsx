@@ -450,7 +450,12 @@ export default function AsteroidCard() {
               MISSION {String(i + 1).padStart(2, "0")}
             </div>
 
-            <h2 className="mission-title">{ach.title}</h2>
+            <h2 
+              className="mission-title"
+              data-long-title={ach.title.length >= 13 ? "true" : "false"}
+            >
+              {ach.title}
+            </h2>
 
             <p className="mission-desc">{ach.summary}</p>
 
