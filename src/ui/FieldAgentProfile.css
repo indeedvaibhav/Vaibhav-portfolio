@@ -1,0 +1,190 @@
+.fap-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.fap-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* translate(-50%, -50%) will be set by GSAP using xPercent/yPercent */
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 4rem;
+  color: #ef4444;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.fap-content {
+  display: flex;
+  width: min(900px, 90vw);
+  gap: 60px;
+  opacity: 0; /* JS controls */
+}
+
+.fap-left {
+  width: 38%;
+  display: flex;
+  flex-direction: column;
+}
+
+.fap-photo {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid rgba(238,241,247,0.15);
+  border-radius: 0;
+  filter: grayscale(1);
+}
+
+.fap-status-bar {
+  background: rgba(238,241,247,0.04);
+  border: 1px solid rgba(238,241,247,0.1);
+  border-top: none;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fap-status-dot {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #4ade80;
+}
+
+.fap-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: #8891a6;
+}
+
+.fap-right {
+  width: 62%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.fap-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-weight: 400;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: #ef4444;
+  margin-bottom: 24px;
+}
+
+.fap-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  color: #eef1f7;
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+.fap-designation {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 1rem;
+  color: #8891a6;
+  margin-bottom: 36px;
+}
+
+.fap-divider {
+  border: none;
+  border-top: 1px solid rgba(238,241,247,0.08);
+  margin: 0 0 28px 0;
+  width: 100%;
+}
+
+.fap-data-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.fap-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(238,241,247,0.06);
+  padding: 13px 0;
+  align-items: center;
+}
+
+.fap-label {
+  font-family: 'DM Mono', monospace;
+  font-weight: 400;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(238,241,247,0.3);
+}
+
+.fap-value {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #eef1f7;
+  text-align: right;
+}
+
+.fap-links {
+  margin-top: 28px;
+}
+
+.fap-link-download {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: #ffb454;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,180,84,0.4);
+  padding-bottom: 3px;
+  margin-right: 28px;
+  display: inline-block;
+  transition: opacity 0.2s ease;
+}
+
+.fap-link-download:hover {
+  opacity: 0.8;
+}
+
+.fap-link-linkedin {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: #8891a6;
+  text-decoration: none;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+.fap-link-linkedin:hover {
+  color: #eef1f7;
+}
+
+@media (max-width: 768px) {
+  .fap-content {
+    flex-direction: column;
+    gap: 40px;
+    padding: 60px 0;
+  }
+  .fap-left, .fap-right {
+    width: 100%;
+  }
+  .fap-stamp {
+    font-size: 2.5rem;
+  }
+  .fap-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .fap-value {
+    text-align: left;
+  }
+}

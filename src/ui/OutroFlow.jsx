@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { coreIdentity } from '../data/achievements';
+import FieldAgentProfile from './FieldAgentProfile';
 import './OutroFlow.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -107,6 +108,9 @@ export default function OutroFlow() {
           ))}
         </div>
       </section>
+
+      {/* SECTION 1.5: Field Agent Profile */}
+      <FieldAgentProfile />
 
       {/* SECTION 2: Final Frame */}
       <section className="final-frame">
