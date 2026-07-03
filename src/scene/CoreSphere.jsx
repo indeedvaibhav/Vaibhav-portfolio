@@ -7,7 +7,7 @@ import { CORE } from '../utils/constants';
 export default function CoreSphere() {
   return (
     <group position={CORE.position}>
-      <CinematicStar radius={CORE.radius} />
+      <CinematicStar radius={CORE.radius} hideInHero />
     </group>
   );
 }

@@ -134,7 +134,10 @@ void main() {
   col *= 1.0 - darkPatch;
 
   col *= 0.55 + limbDarken * 0.55;
-  col += vec3(1.0, 0.72, 0.28) * rim * (0.95 + uInstability * 0.45);
+  col += vec3(1.0, 0.72, 0.28) * rim * (1.15 + uInstability * 0.55);
+
+  float bloom = pow(limb, 4.0) * 0.35;
+  col += vec3(1.0, 0.8, 0.4) * bloom;
 
   float flicker = 0.97 + granulation * 0.05 * sin(t * 9.0 + micro * 12.0);
   col *= flicker * (1.0 + uPulse * 0.08);
@@ -182,7 +185,6 @@ void main() {
   float uneven = 0.75 + vNoise * 0.35;
   float alpha = fresnel * uneven * uIntensity * pulse;
   alpha *= 1.0 + uInstability * 0.55;
-  alpha *= smoothstep(1.2, 0.1, uLayer * 0.35);
   vec3 col = uColor * (0.85 + fresnel * 0.4);
   gl_FragColor = vec4(col, alpha);
 }

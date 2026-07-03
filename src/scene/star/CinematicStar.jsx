@@ -55,7 +55,13 @@ function randomFlare() {
  * Physically-inspired cinematic star — surface, corona, flares, heat shimmer.
  * Reads scroll instability when `instability` prop is omitted.
  */
-export default function CinematicStar({ radius = 1, instability: instabilityProp }) {
+export default function CinematicStar({
+  radius = 1,
+  instability: instabilityProp,
+  compact = false,
+  hideInHero = false,
+}) {
+  const groupRef = useRef();
   const flaresRef = useRef([]);
   const flareMeshes = useRef([]);
   const nextFlareAt = useRef(2 + Math.random() * 3);
@@ -146,14 +152,22 @@ export default function CinematicStar({ radius = 1, instability: instabilityProp
     const instability =
       instabilityProp ?? Math.min(1, scrollState.progress / INTRO_END);
 
+    if (hideInHero && groupRef.current) {
+      const heroT = scrollState.progress / INTRO_END;
+      groupRef.current.visible = heroT > 0.35;
+    }
+
     const pulse = 0.5 + 0.5 * Math.sin(t * (Math.PI * 2) / 10 + pulsePhase.current);
     surfaceUniforms.uTime.value = t;
     surfaceUniforms.uInstability.value = instability;
     surfaceUniforms.uPulse.value = pulse;
 
-    coronaUniforms.forEach((u) => {
+    coronaUniforms.forEach((u, i) => {
       u.uTime.value = t;
       u.uInstability.value = instability;
+      if (compact) {
+        u.uIntensity.value = CORONA_LAYERS[i].intensity * 1.35;
+      }
     });
 
     heatMaterial.uniforms.uTime.value = t;
@@ -197,11 +211,13 @@ export default function CinematicStar({ radius = 1, instability: instabilityProp
   });
 
   return (
-    <group>
-      <mesh scale={radius * 2.35}>
-        <ringGeometry args={[0.42, 0.62, 64]} />
-        <primitive object={heatMaterial} attach="material" />
-      </mesh>
+    <group ref={groupRef}>
+      {!compact && (
+        <mesh scale={radius * 2.35}>
+          <ringGeometry args={[0.42, 0.62, 64]} />
+          <primitive object={heatMaterial} attach="material" />
+        </mesh>
+      )}
 
       {CORONA_LAYERS.map((layer, i) => (
         <mesh

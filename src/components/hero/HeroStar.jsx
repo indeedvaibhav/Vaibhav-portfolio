@@ -1,5 +1,4 @@
 import { Canvas } from '@react-three/fiber';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import CinematicStar from '../../scene/star/CinematicStar';
 import './HeroStar.css';
@@ -8,22 +7,14 @@ function HeroStarScene() {
   return (
     <>
       <ambientLight intensity={0.02} />
-      <CinematicStar radius={1} />
-      <EffectComposer multisampling={0}>
-        <Bloom
-          intensity={1.25}
-          luminanceThreshold={0.18}
-          luminanceSmoothing={0.85}
-          mipmapBlur
-        />
-      </EffectComposer>
+      <CinematicStar radius={1} compact />
     </>
   );
 }
 
 /**
  * Fixed-size WebGL star for the hero overlay (120×120 px).
- * Does not increase visual footprint — replaces CSS gradient disc.
+ * No post-processing composer — bloom is baked in shaders to avoid rectangular artifacts.
  */
 export default function HeroStar() {
   return (
@@ -34,8 +25,12 @@ export default function HeroStar() {
         gl={{
           alpha: true,
           antialias: true,
+          premultipliedAlpha: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15,
+          toneMappingExposure: 1.18,
+        }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0);
         }}
         camera={{ position: [0, 0, 3.15], fov: 36, near: 0.1, far: 20 }}
         dpr={[1, 2]}
