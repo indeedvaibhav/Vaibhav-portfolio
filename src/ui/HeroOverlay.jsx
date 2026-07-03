@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { coreIdentity } from '../data/achievements';
+import ArtifactSystem from '../components/hero/ArtifactSystem';
 
 const TAGLINE = coreIdentity.tagline;
 
@@ -209,6 +210,9 @@ export default function HeroOverlay({ opacity }) {
 
         {/* Central glow disc — breathes slowly */}
         <div className="hero-sun-glow" />
+
+        {/* Interactive personality artifacts */}
+        <ArtifactSystem />
       </div>
 
       {/* ── Bottom text — static ────────────────────────────────────────── */}
