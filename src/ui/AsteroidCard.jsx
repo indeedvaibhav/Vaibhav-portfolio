@@ -450,10 +450,13 @@ export default function AsteroidCard() {
 
             <h2 
               className="mission-title"
-              data-long-title={ach.title.length >= 13 ? "true" : "false"}
+              data-long-title={(ach.title.light.length + ach.title.heavy.length) >= 13 ? "true" : "false"}
             >
-              {ach.title}
+              <span className="title-light">{ach.title.light}</span>
+              <span className="title-heavy">{ach.title.heavy}</span>
             </h2>
+
+            <p className="mission-desc">{ach.summary}</p>
 
             <div className="mission-pills">
               <span className="mission-pill">{ach.category}</span>
@@ -466,77 +469,39 @@ export default function AsteroidCard() {
               className="mission-panel"
               ref={(el) => (panelElemsRef.current[i] = el)}
             >
-              <div className="panel-accent-bar" />
+              <hr className="mission-hr" />
 
-
-              {/* Eyebrow */}
-              <div className="panel-eyebrow">
-                FIELD.LOG — {String(i + 1).padStart(2, "0")} / {String(achievements.length).padStart(2, "0")}
-              </div>
-
-              {/* Overview */}
-              <div className="panel-section">
-                <div className="panel-label">OVERVIEW</div>
-                <div className="panel-text">{ach.summary}</div>
-              </div>
-
-              {/* Stack */}
-              <div className="panel-section">
-                <div className="panel-label">STACK</div>
-                <div className="panel-text panel-text--mono">{ach.details.stack}</div>
-              </div>
-
-              {/* Role & Period inline */}
-              <div className="panel-row-group">
-                <div className="panel-section">
-                  <div className="panel-label">ROLE</div>
-                  <div className="panel-text">{ach.details.role}</div>
+              <div className="mission-data">
+                <div className="data-row">
+                  <span className="data-label">STACK</span>
+                  <span className="data-value">{ach.details.stack}</span>
                 </div>
-                <div className="panel-section">
-                  <div className="panel-label">PERIOD</div>
-                  <div className="panel-text">{ach.details.period}</div>
+                <div className="data-row">
+                  <span className="data-label">ROLE</span>
+                  <span className="data-value">{ach.details.role}</span>
+                </div>
+                <div className="data-row">
+                  <span className="data-label">YEAR</span>
+                  <span className="data-value">{ach.details.period}</span>
+                </div>
+                <div className="data-row">
+                  <span className="data-label">STATUS</span>
+                  <span className="data-value data-value--status">
+                    <span className="data-status-dot"></span>
+                    {ach.details.status}
+                  </span>
                 </div>
               </div>
 
-              {/* Status */}
-              <div className="panel-status">
-                <span className="panel-status-dot" />
-                {ach.details.status}
-              </div>
-
-              {/* Links */}
-              {Object.keys(ach.links).length > 0 && (
-                <div className="panel-links">
-                  {ach.links.live && (
-                    <a
-                      href={ach.links.live}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="panel-link"
-                    >
-                      <span className="panel-link-arrow">→</span> LIVE DEMO
-                    </a>
-                  )}
-                  {ach.links.github && (
-                    <a
-                      href={ach.links.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="panel-link"
-                    >
-                      <span className="panel-link-arrow">→</span> GITHUB
-                    </a>
-                  )}
-                </div>
-              )}
-
-              {/* Tags */}
-              {ach.tags && ach.tags.length > 0 && (
-                <div className="panel-tags">
-                  {ach.tags.map((tag) => (
-                    <span key={tag} className="panel-tag">#{tag}</span>
-                  ))}
-                </div>
+              {ach.links.live && (
+                <a
+                  href={ach.links.live}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mission-link-raw"
+                >
+                  → {ach.links.live.replace(/^https?:\/\//, '')}
+                </a>
               )}
             </div>
           </div>
