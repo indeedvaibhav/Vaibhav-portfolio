@@ -62,11 +62,44 @@
   transition: filter 0.4s ease;
 }
 
+.artifact--basketball .artifact__collectible {
+  filter:
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45))
+    drop-shadow(
+      calc(-5px * var(--star-light, 0.65))
+      calc(4px * var(--star-light, 0.65))
+      calc(14px * var(--star-light, 0.65))
+      rgba(255, 100, 30, calc(0.12 + var(--star-instability, 0) * 0.18))
+    );
+}
+
+.artifact--journal .artifact__collectible {
+  filter:
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45))
+    drop-shadow(
+      0 0 calc(18px * var(--star-light, 0.65))
+      rgba(255, 190, 90, calc(0.1 + var(--star-instability, 0) * 0.15))
+    );
+}
+
+.artifact--terminal .artifact__collectible {
+  filter:
+    drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45))
+    drop-shadow(
+      0 0 calc(12px * var(--star-light, 0.65))
+      rgba(255, 160, 80, calc(0.08 + var(--star-instability, 0) * 0.12))
+    );
+}
+
 .artifact--hovered .artifact__collectible,
 .artifact--dragging .artifact__collectible {
   filter:
     drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 22px var(--artifact-glow-hover, rgba(255, 170, 51, 0.5)));
+    drop-shadow(0 0 22px var(--artifact-glow-hover, rgba(255, 170, 51, 0.5)))
+    drop-shadow(
+      0 0 calc(20px * var(--star-light, 0.65))
+      rgba(255, 170, 80, calc(0.08 + var(--star-instability, 0) * 0.12))
+    );
 }
 
 .artifact__collectible-shadow {
@@ -135,6 +168,13 @@
 .artifact--basketball {
   --artifact-glow: rgba(255, 140, 50, 0.5);
   --artifact-glow-hover: rgba(255, 170, 80, 0.85);
+}
+
+.artifact--basketball .artifact__bball-inner {
+  box-shadow:
+    inset calc(-6px * var(--star-light, 0.65)) calc(4px * var(--star-light, 0.65)) 10px rgba(80, 25, 0, 0.35),
+    inset calc(4px * var(--star-light, 0.65)) calc(-3px * var(--star-light, 0.65)) 8px rgba(255, 200, 140, 0.15);
+  border-radius: 50%;
 }
 
 .artifact__bball-stage {
@@ -410,6 +450,7 @@
   box-shadow:
     inset 2px 0 6px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 200, 140, 0.18),
+    inset calc(-8px * var(--star-light, 0.65)) 0 calc(16px * var(--star-light, 0.65)) rgba(255, 170, 80, 0.12),
     8px 10px 24px rgba(0, 0, 0, 0.55),
     0 0 28px rgba(255, 190, 90, 0.25);
 }
@@ -467,6 +508,12 @@
   width: 112px;
   height: 76px;
   padding: 0;
+  box-shadow:
+    0 0 28px var(--artifact-glow, rgba(255, 170, 51, 0.3)),
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset calc(-4px * var(--star-light, 0.65)) 0 calc(10px * var(--star-light, 0.65)) rgba(255, 140, 60, 0.08),
+    inset 0 -8px 20px rgba(0, 0, 0, 0.25);
 }
 
 .artifact__terminal-chassis {
