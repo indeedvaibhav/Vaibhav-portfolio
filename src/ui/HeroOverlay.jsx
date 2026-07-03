@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { coreIdentity } from '../data/achievements';
 import ArtifactSystem from '../components/hero/ArtifactSystem';
+import HeroStar from '../components/hero/HeroStar';
+import { scrollState } from '../utils/scrollState';
+import { INTRO_END } from '../utils/constants';
 
 const TAGLINE = coreIdentity.tagline;
 
@@ -88,6 +91,12 @@ export default function HeroOverlay({ opacity }) {
       if (sun) {
         sun.style.transform =
           `translate(calc(-50% + ${s.sunX}px), calc(-50% + ${s.sunY}px))`;
+
+        const instability = Math.min(1, scrollState.progress / INTRO_END);
+        const starLight = 0.58 + instability * 0.38;
+        sun.style.setProperty('--star-light', String(starLight));
+        sun.style.setProperty('--star-instability', String(instability));
+        sun.classList.toggle('hero-sun-wrap--unstable', instability > 0.08);
       }
       const top = topLayerRef.current;
       if (top) {
@@ -203,13 +212,8 @@ export default function HeroOverlay({ opacity }) {
           </div>
         ))}
 
-        {/* Corona rings — staggered pulse outward */}
-        <div className="hero-corona" style={{ animationDelay:  '0s'  }} />
-        <div className="hero-corona" style={{ animationDelay: '-0.83s' }} />
-        <div className="hero-corona" style={{ animationDelay: '-1.67s' }} />
-
-        {/* Central glow disc — breathes slowly */}
-        <div className="hero-sun-glow" />
+        {/* Cinematic shader star — replaces CSS glow disc */}
+        <HeroStar />
 
         {/* Interactive personality artifacts */}
         <ArtifactSystem />
