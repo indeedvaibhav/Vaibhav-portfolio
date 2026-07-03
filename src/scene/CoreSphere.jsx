@@ -11,8 +11,8 @@ import {
 } from './shaders/coreSunShaders';
 
 const FLARE_COUNT = 5;
-const CORONA_SCALE = 1.35;
-const HALO_SCALE = 2.2;
+const CORONA_SCALE = 1.12;
+const HALO_SCALE = 1.5;
 const GEOMETRY_DETAIL = 32;
 
 function detectLowEndGPU(gl) {
@@ -187,8 +187,8 @@ export default function CoreSphere() {
       ))}
 
       {/* Layer 5 — scene lighting from the star */}
-      <pointLight color={0xffb454} intensity={6} distance={50} decay={1.5} />
-      <pointLight color={0xff6600} intensity={2} distance={30} decay={2} />
+      <pointLight color={0xffb454} intensity={3} distance={50} decay={1.5} />
+      <pointLight color={0xff6600} intensity={0.8} distance={30} decay={2} />
     </group>
   );
 }

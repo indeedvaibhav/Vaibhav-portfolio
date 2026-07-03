@@ -95,7 +95,7 @@ varying vec3 vViewDir;
 void main() {
   float fresnel = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), 2.8);
   vec3 coronaColor = mix(vec3(1.0, 0.5, 0.05), vec3(1.0, 0.9, 0.3), fresnel);
-  gl_FragColor = vec4(coronaColor, fresnel * 0.7);
+  gl_FragColor = vec4(coronaColor, fresnel * 0.25);
 }
 `;
 
@@ -106,6 +106,6 @@ varying vec3 vViewDir;
 void main() {
   float fresnel = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), 4.0);
   vec3 haloColor = mix(vec3(1.0, 0.65, 0.1), vec3(1.0, 0.4, 0.0), fresnel);
-  gl_FragColor = vec4(haloColor, fresnel * 0.35);
+  gl_FragColor = vec4(haloColor, fresnel * 0.12);
 }
 `;
