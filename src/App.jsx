@@ -10,7 +10,7 @@ import TopNav from './ui/TopNav';
 import HUD from './ui/HUD';
 import AsteroidCard from './ui/AsteroidCard';
 import DetailPanel from './ui/DetailPanel';
-import OutroSection from './ui/OutroSection';
+import OutroFlow from './ui/OutroFlow';
 import AudioToggle from './ui/AudioToggle';
 import useStore from './hooks/useStore';
 import { scrollState } from './utils/scrollState';
@@ -123,7 +123,6 @@ export default function App() {
         <div className="ui-layer">
           <TopNav />
           <HUD />
-          <OutroSection />
           <AudioToggle />
         </div>
       )}
@@ -133,6 +132,9 @@ export default function App() {
 
       {/* ── Detail panel (always on top when open) ── */}
       {phase === 'idle' && <DetailPanel />}
+
+      {/* ── Cinematic Outro Sequence (native scroll) ── */}
+      {phase === 'idle' && <OutroFlow />}
     </>
   );
 }

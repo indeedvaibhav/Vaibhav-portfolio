@@ -20,7 +20,8 @@ export default function HUD() {
     chapter: 0,
     title: '',
     color: '#7a8899',
-    locked: false
+    locked: false,
+    isOutro: false
   });
 
   // Animate in on load
@@ -60,14 +61,20 @@ export default function HUD() {
       const t = scrollState.progress;
       let currentIdx = -1;
       let locked = false;
+      let isOutro = t > 0.93;
 
-      for (let i = 0; i < ASTEROID_SCROLL_CENTERS.length; i++) {
-        const center = ASTEROID_SCROLL_CENTERS[i];
-        if (t >= center - 0.10 && t <= center + 0.10) {
-          currentIdx = i;
-          // Locked on if within inner 30% of window
-          if (Math.abs(t - center) < 0.03) {
-            locked = true;
+      if (isOutro) {
+        currentIdx = 6; // Force to 7th mission
+        locked = true;
+      } else {
+        for (let i = 0; i < ASTEROID_SCROLL_CENTERS.length; i++) {
+          const center = ASTEROID_SCROLL_CENTERS[i];
+          if (t >= center - 0.10 && t <= center + 0.10) {
+            currentIdx = i;
+            // Locked on if within inner 30% of window
+            if (Math.abs(t - center) < 0.03) {
+              locked = true;
+            }
           }
         }
       }
@@ -77,13 +84,15 @@ export default function HUD() {
         setActiveData({
           chapter: currentIdx + 1,
           title: ach.title,
-          color: ach.color || '#ffaa33',
-          locked
+          color: isOutro ? '#10b981' : (ach.color || '#ffaa33'), // green for mission complete
+          locked,
+          isOutro
         });
       } else {
         setActiveData(prev => ({
           ...prev,
-          locked: false
+          locked: false,
+          isOutro: false
         }));
       }
 
@@ -133,7 +142,7 @@ export default function HUD() {
         <div className="hud-line hud-status">
           <span className="hud-blink" style={{ background: activeData.locked ? activeData.color : 'var(--accent-gold)' }} />
           <span className="hud-key" style={{ color: activeData.locked ? activeData.color : 'var(--text-mono)' }}>
-            {activeData.locked ? 'LOCKED ON' : 'SCANNING'}
+            {activeData.isOutro ? 'MISSION COMPLETE' : (activeData.locked ? 'LOCKED ON' : 'SCANNING')}
           </span>
         </div>
       </div>
