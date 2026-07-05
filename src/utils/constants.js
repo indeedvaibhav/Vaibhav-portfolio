@@ -112,8 +112,8 @@ export const SCENE = {
 
 // ─── Core sphere ───────────────────────────────────────────
 export const CORE = {
-  position: [0, 0, 0],
-  radius: 1.2,
+  position: [0, -0.7, 0],
+  radius: 0.96,
   color: '#ffaa33',
   emissiveColor: '#ff8800',
   pulseSpeed: 0.8,

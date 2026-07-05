@@ -1,9 +1,9 @@
 export const ARTIFACTS = [
   {
     id: 'basketball',
-    radius: 280,
+    radius: 140,
     angularSpeed: 0.18,
-    startAngle: 0.4,
+    startAngle: 0.5,
     tooltip: 'State Level Basketball Player',
     glow: 'rgba(255, 120, 40, 0.55)',
     glowHover: 'rgba(255, 120, 40, 0.85)',
@@ -15,9 +15,9 @@ export const ARTIFACTS = [
   },
   {
     id: 'journal',
-    radius: 340,
+    radius: 130,
     angularSpeed: 0.26,
-    startAngle: 2.35,
+    startAngle: 2.6,
     tooltip: 'Poet • Observer • Storyteller',
     glow: 'rgba(255, 180, 84, 0.5)',
     glowHover: 'rgba(255, 180, 84, 0.8)',
@@ -29,9 +29,9 @@ export const ARTIFACTS = [
   },
   {
     id: 'terminal',
-    radius: 220,
+    radius: 150,
     angularSpeed: 0.32,
-    startAngle: 4.5,
+    startAngle: 4.7,
     tooltip: 'Java Developer',
     glow: 'rgba(100, 200, 255, 0.45)',
     glowHover: 'rgba(100, 200, 255, 0.75)',

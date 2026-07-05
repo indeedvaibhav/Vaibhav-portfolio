@@ -173,7 +173,7 @@ export default function HeroOverlay({ opacity }) {
 
       {/* ── Top text — moves OPPOSITE to sun for depth ─────────────────── */}
       <div ref={topLayerRef} className="intro-content-top">
-        <div className="intro-label">CORE SIGNAL DETECTED</div>
+
         <h1 className="intro-name">{coreIdentity.name}</h1>
       </div>
 

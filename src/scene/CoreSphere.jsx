@@ -7,12 +7,10 @@ import {
   SUN_SURFACE_FRAGMENT,
   FRESNEL_VERTEX,
   CORONA_FRAGMENT,
-  HALO_FRAGMENT,
 } from './shaders/coreSunShaders';
 
 const FLARE_COUNT = 5;
 const CORONA_SCALE = 1.12;
-const HALO_SCALE = 1.5;
 const GEOMETRY_DETAIL = 32;
 
 function detectLowEndGPU(gl) {
@@ -94,25 +92,13 @@ export default function CoreSphere() {
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
+        side: THREE.FrontSide,
         toneMapped: false,
       }),
     [],
   );
 
-  const haloMaterial = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: FRESNEL_VERTEX,
-        fragmentShader: HALO_FRAGMENT,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
-        toneMapped: false,
-      }),
-    [],
-  );
+
 
   const flareTexture = useMemo(() => createFlareTexture(), []);
 
@@ -162,8 +148,7 @@ export default function CoreSphere() {
       {/* Layer 2 — corona glow */}
       <mesh geometry={sharedGeometry} material={coronaMaterial} scale={CORONA_SCALE} />
 
-      {/* Layer 3 — outer bloom halo */}
-      <mesh geometry={sharedGeometry} material={haloMaterial} scale={HALO_SCALE} />
+
 
       {/* Layer 4 — solar flare sprites */}
       {flares.map((flare, i) => (
