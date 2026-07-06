@@ -1,5 +1,5 @@
 import { useRef, useMemo } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CORE } from '../utils/constants';
 import {
@@ -10,21 +10,9 @@ import {
 } from './shaders/coreSunShaders';
 
 const FLARE_COUNT = 5;
-const CORONA_SCALE = 1.12;
-const GEOMETRY_DETAIL = 32;
-
-function detectLowEndGPU(gl) {
-  try {
-    const ctx = gl.getContext();
-    const debugInfo = ctx.getExtension('WEBGL_debug_renderer_info');
-    const gpuRenderer = debugInfo
-      ? ctx.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
-      : '';
-    return /Mali|Adreno [23]/i.test(gpuRenderer);
-  } catch {
-    return false;
-  }
-}
+const CORONA_SCALE = 1.18;
+const SUN_DETAIL = 64;
+const CORONA_DETAIL = 32;
 
 function createFlareTexture() {
   const canvas = document.createElement('canvas');
@@ -57,13 +45,14 @@ function randomSurfacePoint(radius) {
  */
 export default function CoreSphere() {
   const flareRefs = useRef([]);
-  const { gl } = useThree();
 
-  const isLowEnd = useMemo(() => detectLowEndGPU(gl), [gl]);
-  const octaves = isLowEnd ? 3 : 5;
+  const sunGeometry = useMemo(
+    () => new THREE.IcosahedronGeometry(CORE.radius, SUN_DETAIL),
+    [],
+  );
 
-  const sharedGeometry = useMemo(
-    () => new THREE.IcosahedronGeometry(CORE.radius, GEOMETRY_DETAIL),
+  const coronaGeometry = useMemo(
+    () => new THREE.IcosahedronGeometry(CORE.radius * CORONA_SCALE, CORONA_DETAIL),
     [],
   );
 
@@ -72,21 +61,18 @@ export default function CoreSphere() {
       new THREE.ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
-          uOctaves: { value: octaves },
         },
         vertexShader: SUN_SURFACE_VERTEX,
         fragmentShader: SUN_SURFACE_FRAGMENT,
         toneMapped: false,
       }),
-    [octaves],
+    [],
   );
 
   const coronaMaterial = useMemo(
     () =>
       new THREE.ShaderMaterial({
-        uniforms: {
-          uColor: { value: new THREE.Color('#ffaa33') },
-        },
+        uniforms: {},
         vertexShader: FRESNEL_VERTEX,
         fragmentShader: CORONA_FRAGMENT,
         transparent: true,
@@ -143,10 +129,10 @@ export default function CoreSphere() {
   return (
     <group position={CORE.position}>
       {/* Layer 1 — plasma surface */}
-      <mesh geometry={sharedGeometry} material={surfaceMaterial} />
+      <mesh geometry={sunGeometry} material={surfaceMaterial} />
 
       {/* Layer 2 — corona glow */}
-      <mesh geometry={sharedGeometry} material={coronaMaterial} scale={CORONA_SCALE} />
+      <mesh geometry={coronaGeometry} material={coronaMaterial} />
 
 
 
