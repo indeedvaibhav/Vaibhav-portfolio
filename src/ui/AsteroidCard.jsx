@@ -23,24 +23,13 @@ const CARD_COLORS = [
  */
 const MISSION_RADIUS = 0.10;
 
-/**
- * 12 polygon clip-paths that tile together to cover the full element.
- * All percentages so they scale with any element size.
- */
-const FRAGMENT_POLYGONS = [
-  "polygon(0% 0%, 38% 0%, 29% 45%, 0% 32%)",
-  "polygon(38% 0%, 71% 0%, 58% 38%, 29% 45%)",
-  "polygon(71% 0%, 100% 0%, 100% 28%, 58% 38%)",
-  "polygon(100% 0%, 100% 28%, 72% 52%, 58% 38%)",
-  "polygon(0% 32%, 29% 45%, 18% 72%, 0% 65%)",
-  "polygon(29% 45%, 58% 38%, 62% 68%, 18% 72%)",
-  "polygon(58% 38%, 72% 52%, 88% 62%, 62% 68%)",
-  "polygon(72% 52%, 100% 28%, 100% 68%, 88% 62%)",
-  "polygon(0% 65%, 18% 72%, 12% 100%, 0% 100%)",
-  "polygon(18% 72%, 62% 68%, 48% 100%, 12% 100%)",
-  "polygon(62% 68%, 88% 62%, 82% 100%, 48% 100%)",
-  "polygon(88% 62%, 100% 68%, 100% 100%, 82% 100%)",
-];
+/** Convert hex color to rgba string for accent-colored effects */
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 /**
  * Cinematic, narrative project showcase.
@@ -52,33 +41,33 @@ const FRAGMENT_POLYGONS = [
  *   Stage 2 (35–65%):               Description + category pills
  *   Stage 3 (65–100%):              Glass info panel materialises
  *   ACTIVE:                         Everything at full opacity
- *   EXIT:                           Panel shatters; title drifts away
- *   SCROLL BACK:                    Fragments reassemble; card restores
+ *   EXIT:                           Panel absorbed by black hole singularity
+ *   SCROLL BACK:                    Card erupts back out of singularity
  *
- * The shatter / reassemble fragment physics engine is preserved exactly.
+ * The black hole absorption / eruption system replaces the old shatter effect.
  */
 export default function AsteroidCard() {
   const containerRef   = useRef(null);
   const cardElemsRef   = useRef([]);   // .mission-chapter per achievement
-  const panelElemsRef  = useRef([]);   // .mission-panel per achievement (shatter target)
+  const panelElemsRef  = useRef([]);   // .mission-panel per achievement (absorption target)
   const rafRef         = useRef(null);
 
-  // Shatter guards
+  // Absorption guards
   const shatteredRef        = useRef(new Set());
   const hasBeenActiveRef    = useRef(new Set());
 
   // Mouse parallax for panel
   const mouseRef = useRef({ x: 0, y: 0 });
 
-  // ── Fragment system refs ────────────────────────────────────────────────────
-  const fragmentsRef                   = useRef([]);
-  const shatterStateRef                = useRef("idle");   // 'idle'|'shattering'|'reassembling'
-  const shatterProgressRef             = useRef(0);        // 0=assembled 1=shattered
-  const shatterProgressAtReassembleRef = useRef(1);
-  const shatterStartTimeRef            = useRef(0);
-  const reassembleStartTimeRef         = useRef(0);
-  const shatterCardIdxRef              = useRef(-1);
-  const shatterRectRef                 = useRef(null);     // rect of the panel element
+  // ── Black hole absorption system refs ──────────────────────────────────────
+  const singularityRef     = useRef(null);     // the dark singularity dot
+  const accretionRingRef   = useRef(null);     // the bright ring flash
+  const rippleRingsRef     = useRef([]);       // 3 spacetime echo rings
+  const absorbTimelineRef  = useRef(null);     // current gsap timeline
+  const absorbCenterRef    = useRef({ x: 0, y: 0 }); // stored center for eruption
+  const shatterStateRef    = useRef("idle");   // 'idle'|'absorbing'|'erupting'
+  const shatterProgressRef = useRef(0);        // 0=visible, 1=absorbed
+  const shatterCardIdxRef  = useRef(-1);
 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [techFilter, setTechFilter] = useState('All');
@@ -124,30 +113,67 @@ export default function AsteroidCard() {
     });
   }, [legacyFilter]);
 
-  // ── Create 12 fragment divs once on mount ──────────────────────────────────
+  // ── Create black hole elements once on mount ───────────────────────────────
   useEffect(() => {
-    const frags = FRAGMENT_POLYGONS.map((poly) => {
-      const el = document.createElement("div");
-      el.style.position        = "fixed";
-      el.style.background      = "rgba(5, 6, 10, 0.80)";
-      el.style.border          = "1px solid rgba(238, 241, 247, 0.14)";
-      el.style.backdropFilter  = "blur(16px)";
-      el.style.webkitBackdropFilter = "blur(16px)";
-      el.style.clipPath        = poly;
-      el.style.opacity         = "0";
-      el.style.pointerEvents   = "none";
-      el.style.zIndex          = "9999";
-      el.style.willChange      = "transform, opacity";
-      document.body.appendChild(el);
-      return {
-        el,
-        vx:       -280 + Math.random() * 560,
-        vy:       -380 + Math.random() * 320,
-        rotSpeed: -160 + Math.random() * 320,
-      };
+    // Singularity dot — the dark center of the black hole
+    const singularity = document.createElement("div");
+    Object.assign(singularity.style, {
+      position: "fixed",
+      width: "18px",
+      height: "18px",
+      background: "#000000",
+      border: "1.5px solid rgba(255,255,255,0.6)",
+      borderRadius: "50%",
+      opacity: "0",
+      pointerEvents: "none",
+      zIndex: "10001",
+      willChange: "transform, opacity",
     });
-    fragmentsRef.current = frags;
-    return () => frags.forEach((f) => f.el.remove());
+    document.body.appendChild(singularity);
+    singularityRef.current = singularity;
+
+    // Accretion ring — the bright flash before collapse
+    const accretionRing = document.createElement("div");
+    Object.assign(accretionRing.style, {
+      position: "fixed",
+      width: "120px",
+      height: "120px",
+      borderRadius: "50%",
+      background: "transparent",
+      border: "2px solid transparent",
+      opacity: "0",
+      pointerEvents: "none",
+      zIndex: "10000",
+      willChange: "transform, opacity",
+    });
+    document.body.appendChild(accretionRing);
+    accretionRingRef.current = accretionRing;
+
+    // 3 ripple rings for spacetime echo aftermath
+    const rings = Array.from({ length: 3 }, () => {
+      const ring = document.createElement("div");
+      Object.assign(ring.style, {
+        position: "fixed",
+        width: "20px",
+        height: "20px",
+        borderRadius: "50%",
+        background: "transparent",
+        border: "1px solid rgba(139,92,246,0.6)",
+        opacity: "0",
+        pointerEvents: "none",
+        zIndex: "9999",
+        willChange: "transform, opacity",
+      });
+      document.body.appendChild(ring);
+      return ring;
+    });
+    rippleRingsRef.current = rings;
+
+    return () => {
+      singularity.remove();
+      accretionRing.remove();
+      rings.forEach((r) => r.remove());
+    };
   }, []);
 
   // ── Mouse parallax listener ────────────────────────────────────────────────
@@ -189,25 +215,32 @@ export default function AsteroidCard() {
         if (progress >= enterStart && progress < enterEnd) {
           const t = (progress - enterStart) / (enterEnd - enterStart); // 0→1
 
-          // Trigger reassembly if scrolling back through this card
+          // Trigger eruption if scrolling back through this card
           if (
             shatterCardIdxRef.current === i &&
             shatterProgressRef.current > 0 &&
-            shatterStateRef.current !== "reassembling"
+            shatterStateRef.current !== "erupting"
           ) {
-            triggerReassemble(chapterEl, panelEl, i);
+            triggerErupt(chapterEl, panelEl, i);
           }
 
-          const isReassembling =
-            shatterStateRef.current === "reassembling" &&
+          const isErupting =
+            shatterStateRef.current === "erupting" &&
             shatterCardIdxRef.current === i;
 
-          // Container visible (opacity driven per-child, not per-container)
-          chapterEl.style.opacity = isReassembling || shatteredRef.current.has(i)
-            ? "0"
-            : "1";
+          if (isErupting) {
+            // Keep chapter visible during eruption — gsap is driving the panel
+            chapterEl.style.opacity = "1";
+            if (numberEl) numberEl.style.opacity = "0";
+            if (titleEl) titleEl.style.opacity = "0";
+            if (descGroupEl) descGroupEl.style.opacity = "0";
+            if (pillsEl) pillsEl.style.opacity = "0";
+          } else if (shatteredRef.current.has(i)) {
+            chapterEl.style.opacity = "0";
+          } else {
+            // Container visible (opacity driven per-child, not per-container)
+            chapterEl.style.opacity = "1";
 
-          if (!isReassembling && !shatteredRef.current.has(i)) {
             // Stage 1: Mission number + title (0 → 0.35)
             const s1 = Math.max(0, Math.min(1, t / 0.35));
             if (numberEl) {
@@ -267,9 +300,18 @@ export default function AsteroidCard() {
               panelEl.style.pointerEvents = "auto";
             }
           } else {
-            // Exiting — hide chapter if shattered
+            // Exiting
             if (shatteredRef.current.has(i)) {
-              chapterEl.style.opacity     = "0";
+              // During absorption: keep chapter visible so gsap can animate the panel
+              if (shatterStateRef.current === "absorbing" && shatterCardIdxRef.current === i) {
+                chapterEl.style.opacity = "1";
+                if (numberEl) numberEl.style.opacity = "0";
+                if (titleEl) titleEl.style.opacity = "0";
+                if (descGroupEl) descGroupEl.style.opacity = "0";
+                if (pillsEl) pillsEl.style.opacity = "0";
+              } else {
+                chapterEl.style.opacity     = "0";
+              }
               if (panelEl) panelEl.style.pointerEvents = "none";
             } else {
               chapterEl.style.opacity = "1";
@@ -289,12 +331,12 @@ export default function AsteroidCard() {
               }
             }
 
-            // Shatter fires once per exit pass, ONLY if card was fully active
+            // Absorption fires once per exit pass, ONLY if card was fully active
             if (t > 0 && t < 0.12 && !shatteredRef.current.has(i) && hasBeenActiveRef.current.has(i)) {
               shatteredRef.current.add(i);
-              // Target the panel element for a focused glass shatter
+              // Target the panel element for black hole absorption
               const target = panelEl || chapterEl;
-              triggerShatter(target, i);
+              triggerAbsorb(target, i);
             }
           }
 
@@ -302,11 +344,11 @@ export default function AsteroidCard() {
 
         // ── HIDDEN ────────────────────────────────────────────────────────────
         } else {
-          const isShatterDriven =
+          const isAbsorbDriven =
             shatterCardIdxRef.current === i &&
             shatterStateRef.current !== "idle";
 
-          if (!isShatterDriven) {
+          if (!isAbsorbDriven) {
             chapterEl.style.opacity = "0";
             if (numberEl) { numberEl.style.opacity = "0";   numberEl.style.transform = "translateY(40px)"; }
             if (titleEl)  { titleEl.style.opacity  = "0";   titleEl.style.transform  = "translateY(70px)"; }
@@ -330,7 +372,6 @@ export default function AsteroidCard() {
         }
       });
 
-      driveFragmentAnimation();
       setCurrentIndex(bestActive);
       rafRef.current = requestAnimationFrame(animate);
     };
@@ -339,137 +380,240 @@ export default function AsteroidCard() {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  // ── Trigger shatter ────────────────────────────────────────────────────────
-  function triggerShatter(targetEl, idx) {
-    const rect = targetEl.getBoundingClientRect();
-    shatterRectRef.current = rect;
+  // ── Trigger black hole absorption ──────────────────────────────────────────
+  function triggerAbsorb(targetEl, idx) {
+    if (absorbTimelineRef.current) absorbTimelineRef.current.kill();
 
-    fragmentsRef.current.forEach((frag) => {
-      frag.el.style.left      = rect.left   + "px";
-      frag.el.style.top       = rect.top    + "px";
-      frag.el.style.width     = rect.width  + "px";
-      frag.el.style.height    = rect.height + "px";
-      frag.el.style.transform = "translate(0px, 0px) rotate(0deg)";
-      frag.el.style.opacity   = "1";
+    const rect = targetEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const accentColor = CARD_COLORS[idx] || "#8b5cf6";
+
+    // Store center for eruption reverse
+    absorbCenterRef.current = { x: cx, y: cy };
+
+    const singularity   = singularityRef.current;
+    const accretionRing = accretionRingRef.current;
+    const ripples       = rippleRingsRef.current;
+
+    // Position singularity at card center (offset by half size for centering)
+    singularity.style.left = (cx - 9) + "px";
+    singularity.style.top  = (cy - 9) + "px";
+    singularity.style.boxShadow = `
+      0 0 0 3px rgba(255,255,255,0.15),
+      0 0 20px 6px ${hexToRgba(accentColor, 0.4)},
+      0 0 60px 20px rgba(0,0,0,0.8)
+    `;
+
+    // Position accretion ring at card center
+    accretionRing.style.left = (cx - 60) + "px";
+    accretionRing.style.top  = (cy - 60) + "px";
+    accretionRing.style.boxShadow = `
+      0 0 0 1px rgba(255,180,84,0.9),
+      0 0 0 8px rgba(255,120,30,0.4),
+      0 0 0 20px rgba(255,60,0,0.15),
+      0 0 40px 10px ${hexToRgba(accentColor, 0.3)}
+    `;
+
+    // Position ripple rings at card center
+    ripples.forEach((ring) => {
+      ring.style.left = (cx - 10) + "px";
+      ring.style.top  = (cy - 10) + "px";
+      ring.style.borderColor = hexToRgba(accentColor, 0.6);
     });
 
-    shatterCardIdxRef.current   = idx;
-    shatterStateRef.current     = "shattering";
-    shatterProgressRef.current  = 0;
-    shatterStartTimeRef.current = Date.now();
+    // Set state
+    shatterCardIdxRef.current  = idx;
+    shatterStateRef.current    = "absorbing";
+    shatterProgressRef.current = 1;
 
-    flashWhite(rect);
-  }
-
-  // ── Trigger reassemble ────────────────────────────────────────────────────
-  function triggerReassemble(chapterEl, panelEl, idx) {
-    const targetEl = panelEl || chapterEl;
-    const rect = targetEl.getBoundingClientRect();
-
-    shatterProgressAtReassembleRef.current = Math.max(shatterProgressRef.current, 0.01);
-
-    fragmentsRef.current.forEach((frag) => {
-      frag.el.style.left   = rect.left   + "px";
-      frag.el.style.top    = rect.top    + "px";
-      frag.el.style.width  = rect.width  + "px";
-      frag.el.style.height = rect.height + "px";
-      const tEff = shatterProgressAtReassembleRef.current * 1.2;
-      const x    = frag.vx * tEff;
-      const y    = frag.vy * tEff + 0.5 * 420 * tEff * tEff;
-      const rot  = frag.rotSpeed * tEff;
-      frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
-      frag.el.style.opacity   = String(shatterProgressAtReassembleRef.current);
-    });
-
-    chapterEl.style.opacity = "0";
-    shatterStateRef.current        = "reassembling";
-    reassembleStartTimeRef.current = Date.now();
-  }
-
-  // ── Per-frame fragment physics ─────────────────────────────────────────────
-  function driveFragmentAnimation() {
-    const state = shatterStateRef.current;
-    if (state === "idle") return;
-
-    const frags = fragmentsRef.current;
-
-    if (state === "shattering") {
-      const t        = (Date.now() - shatterStartTimeRef.current) / 1000;
-      const progress = Math.min(t / 3.5, 1);
-      shatterProgressRef.current = progress;
-
-      frags.forEach((frag) => {
-        const x   = frag.vx * t;
-        const y   = frag.vy * t + 0.5 * 520 * t * t;
-        const rot = frag.rotSpeed * t;
-        const opacity = progress < 0.6 ? 1 : 1 - ((progress - 0.6) / 0.4);
-        frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
-        frag.el.style.opacity   = String(opacity);
-      });
-
-      if (progress >= 1) {
-        frags.forEach((f) => (f.el.style.opacity = "0"));
+    // Build gsap timeline for all 5 phases
+    const tl = gsap.timeline({
+      onComplete: () => {
         shatterStateRef.current = "idle";
-      }
+        // Hide chapter after absorption completes
+        const chapterEl = cardElemsRef.current[idx];
+        if (chapterEl) chapterEl.style.opacity = "0";
+        // Reset all effect elements
+        gsap.set(singularity, { scale: 0, opacity: 0 });
+        gsap.set(accretionRing, { scale: 0.3, opacity: 0 });
+        ripples.forEach((r) => gsap.set(r, { scale: 0.1, opacity: 0 }));
+        // Clear gsap-applied filter/borderRadius on target
+        gsap.set(targetEl, { clearProps: "filter,borderRadius" });
+      },
+    });
 
-    } else if (state === "reassembling") {
-      const elapsed  = (Date.now() - reassembleStartTimeRef.current) / 1000;
-      const progress = Math.min(elapsed / 1.0, 1);
-      const reverseProgress = shatterProgressAtReassembleRef.current * (1 - progress);
+    // PHASE 1 — SINGULARITY APPEARS (0ms → 200ms)
+    tl.fromTo(singularity,
+      { scale: 0, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" },
+      0
+    );
 
-      frags.forEach((frag) => {
-        const tEff = reverseProgress * 3.5;
-        const x    = frag.vx * tEff;
-        const y    = frag.vy * tEff + 0.5 * 520 * tEff * tEff;
-        const rot  = frag.rotSpeed * tEff;
-        frag.el.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
-        frag.el.style.opacity   = String(reverseProgress);
-      });
+    // PHASE 2 — GRAVITATIONAL DISTORTION (200ms → 800ms)
+    tl.to(targetEl, {
+      scale: 0.85,
+      filter: "blur(0px)",
+      duration: 0.6,
+      ease: "power1.in",
+    }, 0.2);
 
-      if (progress >= 1) {
-        frags.forEach((f) => {
-          f.el.style.opacity   = "0";
-          f.el.style.transform = "translate(0px, 0px) rotate(0deg)";
-        });
+    tl.to(targetEl, {
+      borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
+      duration: 0.6,
+      ease: "power2.in",
+    }, 0.2);
 
-        // Restore the chapter element
-        const chapterEl = cardElemsRef.current[shatterCardIdxRef.current];
-        if (chapterEl) {
-          chapterEl.style.opacity = "1";
-        }
+    tl.to(singularity, {
+      scale: 3,
+      duration: 0.6,
+      ease: "power1.in",
+    }, 0.2);
 
-        shatteredRef.current.delete(shatterCardIdxRef.current);
+    // PHASE 3 — ACCRETION DISK FLASH (800ms → 1000ms)
+    tl.fromTo(accretionRing,
+      { scale: 0.3, opacity: 0 },
+      {
+        scale: 1.2, opacity: 1,
+        duration: 0.15, ease: "power3.out",
+        onComplete: () => {
+          gsap.to(accretionRing, {
+            scale: 2.5, opacity: 0,
+            duration: 0.2, ease: "power2.in",
+          });
+        },
+      },
+      0.8
+    );
+
+    // PHASE 4 — COLLAPSE (1000ms → 1400ms)
+    tl.to(targetEl, {
+      scale: 0,
+      opacity: 0,
+      filter: "blur(8px)",
+      duration: 0.4,
+      ease: "power4.in",
+      transformOrigin: "center center",
+    }, 1.0);
+
+    tl.to(singularity, {
+      scale: 0,
+      opacity: 0,
+      duration: 0.3,
+      ease: "power3.in",
+    }, 1.1);
+
+    // PHASE 5 — AFTERMATH RIPPLES (1400ms → ~2600ms)
+    ripples.forEach((ring, index) => {
+      tl.fromTo(ring,
+        { scale: 0.1, opacity: 0.8 },
+        { scale: 8, opacity: 0, duration: 1.2, ease: "power1.out" },
+        1.4 + index * 0.15
+      );
+    });
+
+    absorbTimelineRef.current = tl;
+  }
+
+  // ── Trigger eruption (reverse — card bursts back from singularity) ─────────
+  function triggerErupt(chapterEl, panelEl, idx) {
+    if (absorbTimelineRef.current) absorbTimelineRef.current.kill();
+
+    const targetEl    = panelEl || chapterEl;
+    const accentColor = CARD_COLORS[idx] || "#8b5cf6";
+    const cx = absorbCenterRef.current.x;
+    const cy = absorbCenterRef.current.y;
+
+    const singularity   = singularityRef.current;
+    const accretionRing = accretionRingRef.current;
+
+    // Position elements at stored center
+    singularity.style.left = (cx - 9) + "px";
+    singularity.style.top  = (cy - 9) + "px";
+    singularity.style.boxShadow = `
+      0 0 0 3px rgba(255,255,255,0.15),
+      0 0 20px 6px ${hexToRgba(accentColor, 0.4)},
+      0 0 60px 20px rgba(0,0,0,0.8)
+    `;
+
+    accretionRing.style.left = (cx - 60) + "px";
+    accretionRing.style.top  = (cy - 60) + "px";
+    accretionRing.style.boxShadow = `
+      0 0 0 1px rgba(255,180,84,0.9),
+      0 0 0 8px rgba(255,120,30,0.4),
+      0 0 0 20px rgba(255,60,0,0.15),
+      0 0 40px 10px ${hexToRgba(accentColor, 0.3)}
+    `;
+
+    shatterStateRef.current = "erupting";
+    // Make chapter visible so the erupting panel is rendered
+    chapterEl.style.opacity = "1";
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        // Clear all gsap inline styles so scroll loop can take over cleanly
+        gsap.set(targetEl, { clearProps: "all" });
+        // Immediately set panel to visible state to prevent flash
+        targetEl.style.opacity       = "1";
+        targetEl.style.transform     = "scale(1)";
+        targetEl.style.pointerEvents = "auto";
+
+        // Restore chapter
+        chapterEl.style.opacity = "1";
+
+        // Reset effect elements
+        gsap.set(singularity, { scale: 0, opacity: 0 });
+        gsap.set(accretionRing, { scale: 0.3, opacity: 0 });
+
+        // Reset state
+        shatteredRef.current.delete(idx);
         shatterProgressRef.current = 0;
         shatterStateRef.current    = "idle";
         shatterCardIdxRef.current  = -1;
-      }
-    }
-  }
+      },
+    });
 
-  // ── White flash overlay ───────────────────────────────────────────────────
-  function flashWhite(rect) {
-    const flash = document.createElement("div");
-    flash.style.cssText = `
-      position: fixed;
-      left: ${rect.left}px; top: ${rect.top}px;
-      width: ${rect.width}px; height: ${rect.height}px;
-      background: rgba(255,255,255,0.85);
-      z-index: 10000;
-      opacity: 0;
-      pointer-events: none;
-      border-radius: 16px;
-    `;
-    document.body.appendChild(flash);
-    const start = Date.now();
-    const step = () => {
-      const p = (Date.now() - start) / 160;
-      if (p >= 1) { flash.remove(); return; }
-      flash.style.opacity = p < 0.5
-        ? String(p * 2 * 0.6)
-        : String((1 - (p - 0.5) * 2) * 0.6);
-      requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
+    // 1. Singularity appears briefly
+    tl.fromTo(singularity,
+      { scale: 0, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.15, ease: "power2.out" },
+      0
+    );
+
+    // 2. Accretion ring flash (faster than absorption)
+    tl.fromTo(accretionRing,
+      { scale: 0.3, opacity: 0 },
+      {
+        scale: 1.2, opacity: 1,
+        duration: 0.1, ease: "power3.out",
+        onComplete: () => {
+          gsap.to(accretionRing, {
+            scale: 2.5, opacity: 0,
+            duration: 0.15, ease: "power2.in",
+          });
+        },
+      },
+      0.05
+    );
+
+    // 3. Card erupts outward from center
+    tl.fromTo(targetEl,
+      { scale: 0, opacity: 0, filter: "blur(12px)", borderRadius: "50%" },
+      {
+        scale: 1, opacity: 1,
+        filter: "blur(0px)", borderRadius: "20px",
+        duration: 0.6, ease: "back.out(1.8)",
+      },
+      0.15
+    );
+
+    // 4. Singularity implodes
+    tl.to(singularity,
+      { scale: 0, opacity: 0, duration: 0.2, ease: "power3.in" },
+      0.25
+    );
+
+    absorbTimelineRef.current = tl;
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
