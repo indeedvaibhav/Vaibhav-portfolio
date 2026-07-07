@@ -23,11 +23,14 @@ const CARD_COLORS = [
  */
 const MISSION_RADIUS = 0.10;
 
-/** Convert hex color to rgba string for accent-colored effects */
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+function getRgba(hex, alpha) {
+  let c = hex;
+  if (!c || !c.startsWith('#')) return `rgba(139,92,246,${alpha})`;
+  if (c.length === 4) c = '#' + c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+  const r = parseInt(c.slice(1, 3), 16);
+  const g = parseInt(c.slice(3, 5), 16);
+  const b = parseInt(c.slice(5, 7), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(139,92,246,${alpha})`;
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
@@ -41,33 +44,32 @@ function hexToRgba(hex, alpha) {
  *   Stage 2 (35–65%):               Description + category pills
  *   Stage 3 (65–100%):              Glass info panel materialises
  *   ACTIVE:                         Everything at full opacity
- *   EXIT:                           Panel absorbed by black hole singularity
- *   SCROLL BACK:                    Card erupts back out of singularity
+ *   EXIT:                           Panel shatters; title drifts away
+ *   SCROLL BACK:                    Fragments reassemble; card restores
  *
- * The black hole absorption / eruption system replaces the old shatter effect.
+ * The shatter / reassemble fragment physics engine is preserved exactly.
  */
 export default function AsteroidCard() {
   const containerRef   = useRef(null);
   const cardElemsRef   = useRef([]);   // .mission-chapter per achievement
-  const panelElemsRef  = useRef([]);   // .mission-panel per achievement (absorption target)
+  const panelElemsRef  = useRef([]);   // .mission-panel per achievement (shatter target)
   const rafRef         = useRef(null);
 
-  // Absorption guards
+  // Shatter guards
   const shatteredRef        = useRef(new Set());
   const hasBeenActiveRef    = useRef(new Set());
 
   // Mouse parallax for panel
   const mouseRef = useRef({ x: 0, y: 0 });
 
-  // ── Black hole absorption system refs ──────────────────────────────────────
-  const singularityRef     = useRef(null);     // the dark singularity dot
-  const accretionRingRef   = useRef(null);     // the bright ring flash
-  const rippleRingsRef     = useRef([]);       // 3 spacetime echo rings
-  const absorbTimelineRef  = useRef(null);     // current gsap timeline
-  const absorbCenterRef    = useRef({ x: 0, y: 0 }); // stored center for eruption
-  const shatterStateRef    = useRef("idle");   // 'idle'|'absorbing'|'erupting'
-  const shatterProgressRef = useRef(0);        // 0=visible, 1=absorbed
-  const shatterCardIdxRef  = useRef(-1);
+  // ── Black Hole Effect Refs ──────────────────────────────────────────────────
+  const effectStateRef   = useRef("idle"); // 'idle' | 'absorbing' | 'erupting'
+  const effectCardIdxRef = useRef(-1);
+  const effectTlRef      = useRef(null);
+
+  const singularityRef   = useRef(null);
+  const accretionRingRef = useRef(null);
+  const rippleRingsRef   = useRef([]);
 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [techFilter, setTechFilter] = useState('All');
@@ -113,66 +115,55 @@ export default function AsteroidCard() {
     });
   }, [legacyFilter]);
 
-  // ── Create black hole elements once on mount ───────────────────────────────
+  // ── Create black hole elements once on mount ──────────────────────────────────
   useEffect(() => {
-    // Singularity dot — the dark center of the black hole
-    const singularity = document.createElement("div");
-    Object.assign(singularity.style, {
-      position: "fixed",
-      width: "18px",
-      height: "18px",
-      background: "#000000",
-      border: "1.5px solid rgba(255,255,255,0.6)",
-      borderRadius: "50%",
-      opacity: "0",
-      pointerEvents: "none",
-      zIndex: "10001",
-      willChange: "transform, opacity",
-    });
-    document.body.appendChild(singularity);
-    singularityRef.current = singularity;
+    const sing = document.createElement("div");
+    sing.style.position = "fixed";
+    sing.style.width = "18px";
+    sing.style.height = "18px";
+    sing.style.background = "#000000";
+    sing.style.border = "1.5px solid rgba(255,255,255,0.6)";
+    sing.style.borderRadius = "50%";
+    sing.style.zIndex = "9999";
+    sing.style.opacity = "0";
+    sing.style.pointerEvents = "none";
+    sing.style.transform = "translate(-50%, -50%) scale(0)";
+    document.body.appendChild(sing);
+    singularityRef.current = sing;
 
-    // Accretion ring — the bright flash before collapse
-    const accretionRing = document.createElement("div");
-    Object.assign(accretionRing.style, {
-      position: "fixed",
-      width: "120px",
-      height: "120px",
-      borderRadius: "50%",
-      background: "transparent",
-      border: "2px solid transparent",
-      opacity: "0",
-      pointerEvents: "none",
-      zIndex: "10000",
-      willChange: "transform, opacity",
-    });
-    document.body.appendChild(accretionRing);
-    accretionRingRef.current = accretionRing;
+    const accRing = document.createElement("div");
+    accRing.style.position = "fixed";
+    accRing.style.width = "120px";
+    accRing.style.height = "120px";
+    accRing.style.borderRadius = "50%";
+    accRing.style.background = "transparent";
+    accRing.style.border = "2px solid transparent";
+    accRing.style.zIndex = "9998";
+    accRing.style.opacity = "0";
+    accRing.style.pointerEvents = "none";
+    accRing.style.transform = "translate(-50%, -50%) scale(0.3)";
+    document.body.appendChild(accRing);
+    accretionRingRef.current = accRing;
 
-    // 3 ripple rings for spacetime echo aftermath
-    const rings = Array.from({ length: 3 }, () => {
+    const ripples = [];
+    for (let i = 0; i < 3; i++) {
       const ring = document.createElement("div");
-      Object.assign(ring.style, {
-        position: "fixed",
-        width: "20px",
-        height: "20px",
-        borderRadius: "50%",
-        background: "transparent",
-        border: "1px solid rgba(139,92,246,0.6)",
-        opacity: "0",
-        pointerEvents: "none",
-        zIndex: "9999",
-        willChange: "transform, opacity",
-      });
+      ring.style.position = "fixed";
+      ring.style.borderRadius = "50%";
+      ring.style.background = "transparent";
+      ring.style.pointerEvents = "none";
+      ring.style.zIndex = "9999";
+      ring.style.opacity = "0";
+      ring.style.transform = "translate(-50%, -50%) scale(0.1)";
       document.body.appendChild(ring);
-      return ring;
-    });
-    rippleRingsRef.current = rings;
+      ripples.push(ring);
+    }
+    rippleRingsRef.current = ripples;
 
     return () => {
-      singularity.remove();
-      accretionRing.remove();
-      rings.forEach((r) => r.remove());
+      sing.remove();
+      accRing.remove();
+      ripples.forEach(r => r.remove());
     };
   }, []);
 
@@ -215,32 +206,22 @@ export default function AsteroidCard() {
         if (progress >= enterStart && progress < enterEnd) {
           const t = (progress - enterStart) / (enterEnd - enterStart); // 0→1
 
+          const isEffectActive = effectCardIdxRef.current === i && (effectStateRef.current === "absorbing" || effectStateRef.current === "erupting");
+
           // Trigger eruption if scrolling back through this card
           if (
-            shatterCardIdxRef.current === i &&
-            shatterProgressRef.current > 0 &&
-            shatterStateRef.current !== "erupting"
+            effectCardIdxRef.current === i &&
+            effectStateRef.current === "absorbing"
           ) {
-            triggerErupt(chapterEl, panelEl, i);
+            triggerEruption(chapterEl, panelEl, i);
           }
 
-          const isErupting =
-            shatterStateRef.current === "erupting" &&
-            shatterCardIdxRef.current === i;
+          // Container visible
+          chapterEl.style.opacity = (shatteredRef.current.has(i) && !isEffectActive)
+            ? "0"
+            : "1";
 
-          if (isErupting) {
-            // Keep chapter visible during eruption — gsap is driving the panel
-            chapterEl.style.opacity = "1";
-            if (numberEl) numberEl.style.opacity = "0";
-            if (titleEl) titleEl.style.opacity = "0";
-            if (descGroupEl) descGroupEl.style.opacity = "0";
-            if (pillsEl) pillsEl.style.opacity = "0";
-          } else if (shatteredRef.current.has(i)) {
-            chapterEl.style.opacity = "0";
-          } else {
-            // Container visible (opacity driven per-child, not per-container)
-            chapterEl.style.opacity = "1";
-
+          if (!shatteredRef.current.has(i) || isEffectActive) {
             // Stage 1: Mission number + title (0 → 0.35)
             const s1 = Math.max(0, Math.min(1, t / 0.35));
             if (numberEl) {
@@ -265,7 +246,7 @@ export default function AsteroidCard() {
 
             // Stage 3: Glass panel (0.65 → 1.0)
             const s3 = Math.max(0, Math.min(1, (t - 0.65) / 0.35));
-            if (panelEl) {
+            if (panelEl && !isEffectActive) {
               const mx = mouseRef.current.x * 10 * s3;
               const my = mouseRef.current.y * 10 * s3;
               panelEl.style.opacity        = s3;
@@ -274,8 +255,11 @@ export default function AsteroidCard() {
             }
           }
 
-          if (shatterStateRef.current === "idle" && shatterCardIdxRef.current !== i) {
-            shatteredRef.current.delete(i);
+          if (effectStateRef.current === "idle" && effectCardIdxRef.current !== i) {
+            if (shatteredRef.current.has(i)) {
+              shatteredRef.current.delete(i);
+              if (panelEl) gsap.set(panelEl, { clearProps: "all" });
+            }
           }
 
           bestActive = i;
@@ -283,6 +267,7 @@ export default function AsteroidCard() {
         // ── ACTIVE + EXIT PHASE ───────────────────────────────────────────────
         } else if (progress >= exitStart && progress < exitEnd) {
           const t = (progress - exitStart) / (exitEnd - exitStart); // 0→1
+          const isEffectActive = effectCardIdxRef.current === i && (effectStateRef.current === "absorbing" || effectStateRef.current === "erupting");
 
           if (t <= 0) {
             // Fully active — mark and hold all elements at 1
@@ -292,7 +277,7 @@ export default function AsteroidCard() {
             if (titleEl)  { titleEl.style.opacity  = "1";    titleEl.style.transform  = "translateY(0px)"; }
             if (descGroupEl){ descGroupEl.style.opacity = "1"; descGroupEl.style.transform = "translateY(0px)"; }
             if (pillsEl)  { pillsEl.style.opacity  = "1";    pillsEl.style.transform  = "translateY(0px)"; }
-            if (panelEl)  {
+            if (panelEl && !isEffectActive)  {
               const mx = mouseRef.current.x * 10;
               const my = mouseRef.current.y * 10;
               panelEl.style.opacity       = "1";
@@ -300,18 +285,9 @@ export default function AsteroidCard() {
               panelEl.style.pointerEvents = "auto";
             }
           } else {
-            // Exiting
-            if (shatteredRef.current.has(i)) {
-              // During absorption: keep chapter visible so gsap can animate the panel
-              if (shatterStateRef.current === "absorbing" && shatterCardIdxRef.current === i) {
-                chapterEl.style.opacity = "1";
-                if (numberEl) numberEl.style.opacity = "0";
-                if (titleEl) titleEl.style.opacity = "0";
-                if (descGroupEl) descGroupEl.style.opacity = "0";
-                if (pillsEl) pillsEl.style.opacity = "0";
-              } else {
-                chapterEl.style.opacity     = "0";
-              }
+            // Exiting — hide chapter if shattered
+            if (shatteredRef.current.has(i) && !isEffectActive) {
+              chapterEl.style.opacity     = "0";
               if (panelEl) panelEl.style.pointerEvents = "none";
             } else {
               chapterEl.style.opacity = "1";
@@ -323,7 +299,7 @@ export default function AsteroidCard() {
               if (titleEl)  { titleEl.style.opacity  = titleFade;  titleEl.style.transform  = `translateY(${-titleDrift}px)`; }
               if (descGroupEl){ descGroupEl.style.opacity = Math.max(0, 1 - t * 3); descGroupEl.style.transform = `translateY(${-t * 30}px)`; }
               if (pillsEl)  { pillsEl.style.opacity  = Math.max(0, 1 - t * 4);     pillsEl.style.transform  = `translateY(${-t * 20}px)`; }
-              if (panelEl)  {
+              if (panelEl && !isEffectActive)  {
                 const panelFade = Math.max(0, 1 - t * 2);
                 panelEl.style.opacity       = panelFade;
                 panelEl.style.transform     = `scale(${1 - t * 0.05}) translate(0px, ${t * -20}px)`;
@@ -331,12 +307,11 @@ export default function AsteroidCard() {
               }
             }
 
-            // Absorption fires once per exit pass, ONLY if card was fully active
+            // Trigger absorption once per exit pass
             if (t > 0 && t < 0.12 && !shatteredRef.current.has(i) && hasBeenActiveRef.current.has(i)) {
               shatteredRef.current.add(i);
-              // Target the panel element for black hole absorption
               const target = panelEl || chapterEl;
-              triggerAbsorb(target, i);
+              triggerAbsorption(target, i);
             }
           }
 
@@ -344,30 +319,30 @@ export default function AsteroidCard() {
 
         // ── HIDDEN ────────────────────────────────────────────────────────────
         } else {
-          const isAbsorbDriven =
-            shatterCardIdxRef.current === i &&
-            shatterStateRef.current !== "idle";
+          const isEffectActive = effectCardIdxRef.current === i && (effectStateRef.current === "absorbing" || effectStateRef.current === "erupting");
 
-          if (!isAbsorbDriven) {
+          if (!isEffectActive) {
             chapterEl.style.opacity = "0";
             if (numberEl) { numberEl.style.opacity = "0";   numberEl.style.transform = "translateY(40px)"; }
             if (titleEl)  { titleEl.style.opacity  = "0";   titleEl.style.transform  = "translateY(70px)"; }
             if (descGroupEl){ descGroupEl.style.opacity = "0"; descGroupEl.style.transform = "translateY(30px)"; }
             if (pillsEl)  { pillsEl.style.opacity  = "0";   pillsEl.style.transform  = "translateY(20px)"; }
-            if (panelEl)  { panelEl.style.opacity  = "0";   panelEl.style.transform  = "scale(0.94)"; panelEl.style.pointerEvents = "none"; }
+            if (panelEl)  { 
+              gsap.set(panelEl, { clearProps: "all" });
+              panelEl.style.opacity  = "0";   
+              panelEl.style.transform  = "scale(0.94)"; 
+              panelEl.style.pointerEvents = "none"; 
+            }
+          } else {
+             chapterEl.style.opacity = "1";
           }
 
           hasBeenActiveRef.current.delete(i);
           shatteredRef.current.delete(i);
 
-          if (
-            progress < enterStart &&
-            shatterCardIdxRef.current === i &&
-            shatterStateRef.current === "idle" &&
-            shatterProgressRef.current > 0
-          ) {
-            shatterProgressRef.current = 0;
-            shatterCardIdxRef.current  = -1;
+          if (!isEffectActive && effectCardIdxRef.current === i) {
+            effectCardIdxRef.current = -1;
+            effectStateRef.current = "idle";
           }
         }
       });
@@ -380,240 +355,191 @@ export default function AsteroidCard() {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, []);
 
-  // ── Trigger black hole absorption ──────────────────────────────────────────
-  function triggerAbsorb(targetEl, idx) {
-    if (absorbTimelineRef.current) absorbTimelineRef.current.kill();
-
+  // ── Trigger Absorption ─────────────────────────────────────────────────────
+  function triggerAbsorption(targetEl, idx) {
     const rect = targetEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const accentColor = CARD_COLORS[idx] || "#8b5cf6";
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const color = CARD_COLORS[idx] || achievements[idx]?.color || '#8b5cf6';
+    
+    const sing = singularityRef.current;
+    const accRing = accretionRingRef.current;
+    const ripples = rippleRingsRef.current;
 
-    // Store center for eruption reverse
-    absorbCenterRef.current = { x: cx, y: cy };
-
-    const singularity   = singularityRef.current;
-    const accretionRing = accretionRingRef.current;
-    const ripples       = rippleRingsRef.current;
-
-    // Position singularity at card center (offset by half size for centering)
-    singularity.style.left = (cx - 9) + "px";
-    singularity.style.top  = (cy - 9) + "px";
-    singularity.style.boxShadow = `
+    sing.style.boxShadow = `
       0 0 0 3px rgba(255,255,255,0.15),
-      0 0 20px 6px ${hexToRgba(accentColor, 0.4)},
+      0 0 20px 6px ${getRgba(color, 0.4)},
       0 0 60px 20px rgba(0,0,0,0.8)
     `;
-
-    // Position accretion ring at card center
-    accretionRing.style.left = (cx - 60) + "px";
-    accretionRing.style.top  = (cy - 60) + "px";
-    accretionRing.style.boxShadow = `
+    accRing.style.boxShadow = `
       0 0 0 1px rgba(255,180,84,0.9),
       0 0 0 8px rgba(255,120,30,0.4),
       0 0 0 20px rgba(255,60,0,0.15),
-      0 0 40px 10px ${hexToRgba(accentColor, 0.3)}
+      0 0 40px 10px ${getRgba(color, 0.3)}
     `;
-
-    // Position ripple rings at card center
-    ripples.forEach((ring) => {
-      ring.style.left = (cx - 10) + "px";
-      ring.style.top  = (cy - 10) + "px";
-      ring.style.borderColor = hexToRgba(accentColor, 0.6);
+    ripples.forEach(r => {
+      r.style.border = `1px solid ${getRgba(color, 0.6)}`;
     });
 
-    // Set state
-    shatterCardIdxRef.current  = idx;
-    shatterStateRef.current    = "absorbing";
-    shatterProgressRef.current = 1;
+    [sing, accRing, ...ripples].forEach(el => {
+      el.style.left = centerX + "px";
+      el.style.top = centerY + "px";
+    });
 
-    // Build gsap timeline for all 5 phases
+    effectCardIdxRef.current = idx;
+    effectStateRef.current = "absorbing";
+
+    if (effectTlRef.current) effectTlRef.current.kill();
+
     const tl = gsap.timeline({
       onComplete: () => {
-        shatterStateRef.current = "idle";
-        // Hide chapter after absorption completes
-        const chapterEl = cardElemsRef.current[idx];
-        if (chapterEl) chapterEl.style.opacity = "0";
-        // Reset all effect elements
-        gsap.set(singularity, { scale: 0, opacity: 0 });
-        gsap.set(accretionRing, { scale: 0.3, opacity: 0 });
-        ripples.forEach((r) => gsap.set(r, { scale: 0.1, opacity: 0 }));
-        // Clear gsap-applied filter/borderRadius on target
-        gsap.set(targetEl, { clearProps: "filter,borderRadius" });
-      },
+        gsap.set([sing, accRing, ...ripples], { opacity: 0 });
+        effectStateRef.current = "idle";
+      }
+    });
+    effectTlRef.current = tl;
+
+    gsap.set(targetEl, {
+      scale: 1,
+      opacity: 1,
+      filter: "blur(0px)",
+      borderRadius: "20px",
+      transformOrigin: "center center"
     });
 
-    // PHASE 1 — SINGULARITY APPEARS (0ms → 200ms)
-    tl.fromTo(singularity,
+    // Phase 1
+    tl.fromTo(sing,
       { scale: 0, opacity: 0 },
       { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" },
       0
     );
 
-    // PHASE 2 — GRAVITATIONAL DISTORTION (200ms → 800ms)
+    // Phase 2
     tl.to(targetEl, {
       scale: 0.85,
       filter: "blur(0px)",
       duration: 0.6,
-      ease: "power1.in",
+      ease: "power1.in"
     }, 0.2);
-
     tl.to(targetEl, {
       borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
       duration: 0.6,
-      ease: "power2.in",
+      ease: "power2.in"
     }, 0.2);
-
-    tl.to(singularity, {
+    tl.to(sing, {
       scale: 3,
       duration: 0.6,
-      ease: "power1.in",
+      ease: "power1.in"
     }, 0.2);
 
-    // PHASE 3 — ACCRETION DISK FLASH (800ms → 1000ms)
-    tl.fromTo(accretionRing,
+    // Phase 3
+    tl.fromTo(accRing,
       { scale: 0.3, opacity: 0 },
-      {
-        scale: 1.2, opacity: 1,
-        duration: 0.15, ease: "power3.out",
-        onComplete: () => {
-          gsap.to(accretionRing, {
-            scale: 2.5, opacity: 0,
-            duration: 0.2, ease: "power2.in",
-          });
-        },
-      },
+      { scale: 1.2, opacity: 1, duration: 0.15, ease: "power3.out" },
       0.8
     );
+    tl.to(accRing, {
+      scale: 2.5,
+      opacity: 0,
+      duration: 0.2,
+      ease: "power2.in"
+    }, 0.95);
 
-    // PHASE 4 — COLLAPSE (1000ms → 1400ms)
+    // Phase 4
     tl.to(targetEl, {
       scale: 0,
       opacity: 0,
       filter: "blur(8px)",
       duration: 0.4,
-      ease: "power4.in",
-      transformOrigin: "center center",
+      ease: "power4.in"
     }, 1.0);
-
-    tl.to(singularity, {
+    tl.to(sing, {
       scale: 0,
       opacity: 0,
       duration: 0.3,
-      ease: "power3.in",
+      ease: "power3.in"
     }, 1.1);
 
-    // PHASE 5 — AFTERMATH RIPPLES (1400ms → ~2600ms)
+    // Phase 5
     ripples.forEach((ring, index) => {
       tl.fromTo(ring,
-        { scale: 0.1, opacity: 0.8 },
+        { scale: 0.1, opacity: 0.8, width: "20px", height: "20px" },
         { scale: 8, opacity: 0, duration: 1.2, ease: "power1.out" },
         1.4 + index * 0.15
       );
     });
-
-    absorbTimelineRef.current = tl;
   }
 
-  // ── Trigger eruption (reverse — card bursts back from singularity) ─────────
-  function triggerErupt(chapterEl, panelEl, idx) {
-    if (absorbTimelineRef.current) absorbTimelineRef.current.kill();
+  // ── Trigger Eruption ───────────────────────────────────────────────────────
+  function triggerEruption(chapterEl, panelEl, idx) {
+    const targetEl = panelEl || chapterEl;
+    const rect = targetEl.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const color = CARD_COLORS[idx] || achievements[idx]?.color || '#8b5cf6';
 
-    const targetEl    = panelEl || chapterEl;
-    const accentColor = CARD_COLORS[idx] || "#8b5cf6";
-    const cx = absorbCenterRef.current.x;
-    const cy = absorbCenterRef.current.y;
+    const sing = singularityRef.current;
+    const accRing = accretionRingRef.current;
+    const ripples = rippleRingsRef.current;
 
-    const singularity   = singularityRef.current;
-    const accretionRing = accretionRingRef.current;
-
-    // Position elements at stored center
-    singularity.style.left = (cx - 9) + "px";
-    singularity.style.top  = (cy - 9) + "px";
-    singularity.style.boxShadow = `
+    sing.style.boxShadow = `
       0 0 0 3px rgba(255,255,255,0.15),
-      0 0 20px 6px ${hexToRgba(accentColor, 0.4)},
+      0 0 20px 6px ${getRgba(color, 0.4)},
       0 0 60px 20px rgba(0,0,0,0.8)
     `;
-
-    accretionRing.style.left = (cx - 60) + "px";
-    accretionRing.style.top  = (cy - 60) + "px";
-    accretionRing.style.boxShadow = `
+    accRing.style.boxShadow = `
       0 0 0 1px rgba(255,180,84,0.9),
       0 0 0 8px rgba(255,120,30,0.4),
       0 0 0 20px rgba(255,60,0,0.15),
-      0 0 40px 10px ${hexToRgba(accentColor, 0.3)}
+      0 0 40px 10px ${getRgba(color, 0.3)}
     `;
 
-    shatterStateRef.current = "erupting";
-    // Make chapter visible so the erupting panel is rendered
-    chapterEl.style.opacity = "1";
+    [sing, accRing].forEach(el => {
+      el.style.left = centerX + "px";
+      el.style.top = centerY + "px";
+    });
+
+    effectStateRef.current = "erupting";
+
+    if (effectTlRef.current) effectTlRef.current.kill();
 
     const tl = gsap.timeline({
       onComplete: () => {
-        // Clear all gsap inline styles so scroll loop can take over cleanly
-        gsap.set(targetEl, { clearProps: "all" });
-        // Immediately set panel to visible state to prevent flash
-        targetEl.style.opacity       = "1";
-        targetEl.style.transform     = "scale(1)";
-        targetEl.style.pointerEvents = "auto";
-
-        // Restore chapter
-        chapterEl.style.opacity = "1";
-
-        // Reset effect elements
-        gsap.set(singularity, { scale: 0, opacity: 0 });
-        gsap.set(accretionRing, { scale: 0.3, opacity: 0 });
-
-        // Reset state
+        effectStateRef.current = "idle";
+        effectCardIdxRef.current = -1;
         shatteredRef.current.delete(idx);
-        shatterProgressRef.current = 0;
-        shatterStateRef.current    = "idle";
-        shatterCardIdxRef.current  = -1;
-      },
+        gsap.set(targetEl, { clearProps: "all" });
+      }
     });
+    effectTlRef.current = tl;
 
-    // 1. Singularity appears briefly
-    tl.fromTo(singularity,
+    gsap.set(ripples, { opacity: 0 });
+
+    tl.fromTo(sing,
       { scale: 0, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.15, ease: "power2.out" },
+      { scale: 1, opacity: 1, duration: 0.15 },
       0
     );
 
-    // 2. Accretion ring flash (faster than absorption)
-    tl.fromTo(accretionRing,
+    tl.fromTo(accRing,
       { scale: 0.3, opacity: 0 },
-      {
-        scale: 1.2, opacity: 1,
-        duration: 0.1, ease: "power3.out",
-        onComplete: () => {
-          gsap.to(accretionRing, {
-            scale: 2.5, opacity: 0,
-            duration: 0.15, ease: "power2.in",
-          });
-        },
-      },
-      0.05
+      { scale: 1.2, opacity: 1, duration: 0.1 },
+      0.15
     );
+    tl.to(accRing, {
+      scale: 2.5,
+      opacity: 0,
+      duration: 0.1,
+      ease: "power2.in"
+    }, 0.25);
 
-    // 3. Card erupts outward from center
     tl.fromTo(targetEl,
       { scale: 0, opacity: 0, filter: "blur(12px)", borderRadius: "50%" },
-      {
-        scale: 1, opacity: 1,
-        filter: "blur(0px)", borderRadius: "20px",
-        duration: 0.6, ease: "back.out(1.8)",
-      },
+      { scale: 1, opacity: 1, filter: "blur(0px)", borderRadius: "20px", duration: 0.6, ease: "back.out(1.8)" },
       0.15
     );
 
-    // 4. Singularity implodes
-    tl.to(singularity,
-      { scale: 0, opacity: 0, duration: 0.2, ease: "power3.in" },
-      0.25
-    );
-
-    absorbTimelineRef.current = tl;
+    tl.to(sing, { scale: 0, opacity: 0, duration: 0.2 }, 0.25);
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
