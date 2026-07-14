@@ -234,7 +234,7 @@ export default function IntroScreen() {
         </h1>
 
         <p ref={subtitleRef} className="intro-screen__sub">
-          7 missions. 1 core. All mine.
+          9 missions. 1 core. All mine.
         </p>
 
         <button
@@ -270,7 +270,7 @@ export default function IntroScreen() {
           </svg>
         </button>
 
-        <div className="intro-screen__hint">Click to activate the sequence</div>
+        <div className="intro-screen__hint">Click to dive in</div>
       </div>
 
       <div ref={footerRef} className="intro-screen__footer">
