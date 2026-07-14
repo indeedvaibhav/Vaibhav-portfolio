@@ -373,12 +373,21 @@ export default function AsteroidCard() {
             }
           } else {
             // ── FIRE ABSORPTION (once, guarded) ──────────────────────────
+            if (t > 0 && t < 0.12) {
+              console.log("EXIT ZONE HIT", i, {
+                shattered: shatteredRef.current.has(i),
+                hasBeenActive: hasBeenActiveRef.current.has(i),
+                effectState: effectStateRef.current
+              });
+            }
+
             if (
               t > 0 && t < 0.12 &&
               !shatteredRef.current.has(i) &&
               hasBeenActiveRef.current.has(i) &&
               effectStateRef.current === "idle"
             ) {
+              console.log("FIRING ABSORPTION for mission", i);
               shatteredRef.current.add(i);
               triggerAbsorption(panelEl || chapterEl, i);
             }

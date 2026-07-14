@@ -13,14 +13,10 @@ const easeInOutCubic = (t) =>
 /* ─── Config ───────────────────────────────────────────────── */
 const CFG = {
   cameraStartZ: 5.5,
-  chargeDuration: 0.85,
-  shatterDuration: 0.75,
+  chargeDuration: 1.0,
+  collapseDuration: 0.9,
   flyDuration: 1.1,
   arriveDuration: 0.7,
-  // Portfolio color palette
-  crystalColor: 0xffaa33,    // --accent-gold
-  crystalEdge: 0xffcc66,
-  shardColors: [0xffaa33, 0x6366f1, 0xffeebb],
   starColor: 0xe8e6f0,
 };
 
@@ -44,62 +40,6 @@ function buildStars(count) {
       sizeAttenuation: true,
     })
   );
-}
-
-/* ─── Shard builder ─────────────────────────────────────────── */
-function buildShards(crystalGeo, colors) {
-  const nonIndexed = crystalGeo.index ? crystalGeo.toNonIndexed() : crystalGeo;
-  const pos = nonIndexed.attributes.position;
-  const shards = [];
-  const a = new THREE.Vector3(),
-    b = new THREE.Vector3(),
-    c = new THREE.Vector3();
-
-  for (let i = 0; i < pos.count; i += 3) {
-    a.fromBufferAttribute(pos, i);
-    b.fromBufferAttribute(pos, i + 1);
-    c.fromBufferAttribute(pos, i + 2);
-    const center = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
-    const normal = center.clone().normalize();
-    const inner = center.clone().multiplyScalar(0.5);
-
-    const pts = [a, b, c, a, c, inner, c, b, inner, b, a, inner];
-    const positions = new Float32Array(pts.length * 3);
-    pts.forEach((v, idx) => {
-      positions[idx * 3] = v.x;
-      positions[idx * 3 + 1] = v.y;
-      positions[idx * 3 + 2] = v.z;
-    });
-
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geo.computeVertexNormals();
-
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    const mat = new THREE.MeshPhysicalMaterial({
-      color,
-      transparent: true,
-      opacity: 0.92,
-      roughness: 0.08,
-      metalness: 0.1,
-      emissive: new THREE.Color(color).multiplyScalar(0.3),
-      side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.userData.dir = normal
-      .clone()
-      .add(new THREE.Vector3(0, (Math.random() - 0.3) * 0.5, 0))
-      .normalize();
-    mesh.userData.speed = 2.5 + Math.random() * 4;
-    mesh.userData.spin = new THREE.Vector3(
-      (Math.random() - 0.5) * 5,
-      (Math.random() - 0.5) * 5,
-      (Math.random() - 0.5) * 5
-    );
-    mesh.visible = false;
-    shards.push(mesh);
-  }
-  return shards;
 }
 
 /* ─── Static noise shader ───────────────────────────────────── */
@@ -189,49 +129,66 @@ export default function CrystalTransition({ onComplete }) {
     const camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 200);
     camera.position.set(0, 0, CFG.cameraStartZ);
 
-    /* ── Lights ── */
-    scene.add(new THREE.AmbientLight(0x223344, 0.7));
-    const keyLight = new THREE.PointLight(0xffaa33, 3.0, 25);
-    keyLight.position.set(2, 2, 4);
-    scene.add(keyLight);
-    const rimLight = new THREE.PointLight(0x6366f1, 1.8, 25);
-    rimLight.position.set(-3, -2, -2);
-    scene.add(rimLight);
-
     /* ── Stars ── */
     const stars = buildStars(1400);
     scene.add(stars);
 
-    /* ── Crystal ── */
-    const crystalGroup = new THREE.Group();
-    const crystalGeo = new THREE.IcosahedronGeometry(1.0, 1);
-    const crystalMat = new THREE.MeshPhysicalMaterial({
-      color: CFG.crystalColor,
-      transparent: true,
-      opacity: 0.4,
-      roughness: 0.1,
-      metalness: 0.05,
-      emissive: new THREE.Color(0xffaa33).multiplyScalar(0.25),
-      emissiveIntensity: 0.8,
-      side: THREE.DoubleSide,
-    });
-    const crystalMesh = new THREE.Mesh(crystalGeo, crystalMat);
-    crystalGroup.add(crystalMesh);
-    crystalGroup.add(
-      new THREE.LineSegments(
-        new THREE.EdgesGeometry(crystalGeo),
-        new THREE.LineBasicMaterial({
-          color: CFG.crystalEdge,
-          transparent: true,
-          opacity: 0.9,
-        })
-      )
-    );
-    scene.add(crystalGroup);
+    /* ── Black Hole Setup ── */
+    const blackHoleGroup = new THREE.Group();
+    
+    // 1. Singularity Sphere
+    const singularityGeo = new THREE.SphereGeometry(0.001, 16, 16);
+    const singularityMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true });
+    const singularityMesh = new THREE.Mesh(singularityGeo, singularityMat);
+    blackHoleGroup.add(singularityMesh);
 
-    /* ── Shards ── */
-    const shards = buildShards(crystalGeo, CFG.shardColors);
-    shards.forEach((s) => scene.add(s));
+    // 2. Accretion Disk
+    const accretionGeo = new THREE.TorusGeometry(0.8, 0.18, 8, 80);
+    const accretionMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uOpacity;
+        varying vec2 vUv;
+        
+        void main() {
+          float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
+          float heat = sin(angle * 6.0 + uTime * 3.0) * 0.5 + 0.5;
+          vec3 innerColor = vec3(1.0, 0.95, 0.7);   // white-yellow hot
+          vec3 outerColor = vec3(1.0, 0.35, 0.0);   // deep orange
+          vec3 col = mix(outerColor, innerColor, heat);
+          gl_FragColor = vec4(col, uOpacity);
+        }
+      `,
+      transparent: true,
+    });
+    const accretionDisk = new THREE.Mesh(accretionGeo, accretionMat);
+    accretionDisk.rotation.x = 1.1; // Tilted
+    blackHoleGroup.add(accretionDisk);
+
+    // 3. Gravitational Lensing Ring
+    const lensingGeo = new THREE.TorusGeometry(1.05, 0.03, 8, 120);
+    const lensingMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+    const lensingRing = new THREE.Mesh(lensingGeo, lensingMat);
+    lensingRing.rotation.x = 1.1; // Same tilt
+    blackHoleGroup.add(lensingRing);
+
+    // 4. Ambient Point Light
+    const pointLight = new THREE.PointLight(0xff6600, 0, 20);
+    pointLight.position.set(0, 0, 0);
+    blackHoleGroup.add(pointLight);
+
+    scene.add(blackHoleGroup);
 
     /* ── Post ── */
     const post = new PostQuad(renderer);
@@ -239,27 +196,14 @@ export default function CrystalTransition({ onComplete }) {
     /* ── State machine ── */
     const PHASE = {
       CHARGE: "charge",
-      SHATTER: "shatter",
+      COLLAPSE: "collapse",
       FLY: "fly",
       ARRIVE: "arrive",
       DONE: "done",
     };
     let phase = PHASE.CHARGE;
     let phaseStart = 0;
-    let shattered = false;
     let totalElapsed = 0;
-
-    const triggerShatter = () => {
-      const wp = new THREE.Vector3();
-      crystalGroup.getWorldPosition(wp);
-      shards.forEach((s) => {
-        s.position.copy(wp);
-        s.rotation.set(0, 0, 0);
-        s.material.opacity = 0.92;
-        s.visible = true;
-      });
-      crystalGroup.visible = false;
-    };
 
     /* ── Resize ── */
     const onResize = () => {
@@ -286,53 +230,79 @@ export default function CrystalTransition({ onComplete }) {
       totalElapsed += dt;
       const t = totalElapsed - phaseStart;
 
+      // Update Loop Additions
+      accretionDisk.rotation.y += dt * 1.2;
+      accretionDisk.material.uniforms.uTime.value = totalElapsed;
+      singularityMesh.rotation.y += dt * 0.5;
+
       /* Per-phase logic */
       if (phase === PHASE.CHARGE) {
         const p = clamp01(t / CFG.chargeDuration);
         const e = easeInCubic(p);
 
-        camera.position.z = lerp(CFG.cameraStartZ, 2.8, e);
-        post.mat.uniforms.uRgb.value = lerp(0, 0.01, e);
-        post.mat.uniforms.uNoise.value = lerp(0, 0.12, e);
+        camera.position.z = lerp(CFG.cameraStartZ, 3.0, e);
+        
+        // Singularity sphere grows from 0.001 to 0.15 -> Scale 1 to 150
+        singularityMesh.scale.setScalar(lerp(1, 150, e));
+        
+        // Accretion disk fades in (uOpacity 0 → 0.9)
+        accretionDisk.material.uniforms.uOpacity.value = lerp(0, 0.9, e);
+        
+        // Lensing ring fades in (opacity 0 → 0.7)
+        lensingRing.material.opacity = lerp(0, 0.7, e);
+        
+        // Point light intensity 0 → 2.5
+        pointLight.intensity = lerp(0, 2.5, e);
+        
+        // RGB shift: 0 → 0.008
+        post.mat.uniforms.uRgb.value = lerp(0, 0.008, e);
+        post.mat.uniforms.uNoise.value = 0; // Stays 0 here
         post.mat.uniforms.uTime.value = totalElapsed;
 
-        // Crystal pulse & spin
-        crystalGroup.rotation.y += dt * (0.3 + e * 3.0);
-        crystalGroup.rotation.x += dt * 0.1;
-        const pulse = 1 + Math.sin(totalElapsed * 20) * 0.018 * e;
-        crystalGroup.scale.setScalar(pulse);
-        crystalMat.emissiveIntensity = 0.8 + e * 2.5;
+        // Stars slowly rotate
+        stars.rotation.y += dt * 0.02;
 
         if (scanlinesRef.current)
           scanlinesRef.current.style.opacity = p > 0.4 ? String(lerp(0, 0.5, (p - 0.4) / 0.6)) : "0";
 
         if (p >= 1) {
-          phase = PHASE.SHATTER;
+          phase = PHASE.COLLAPSE;
           phaseStart = totalElapsed;
         }
-      } else if (phase === PHASE.SHATTER) {
-        if (!shattered) {
-          triggerShatter();
-          shattered = true;
+      } else if (phase === PHASE.COLLAPSE) {
+        const p = clamp01(t / CFG.collapseDuration);
+        const e = easeInCubic(p);
+
+        // Camera moves from z: 3.0 → z: 0.8
+        camera.position.z = lerp(3.0, 0.8, e);
+        
+        // Singularity grows from 0.15 → 1.8 (Scale 150 -> 1800)
+        singularityMesh.scale.setScalar(lerp(150, 1800, e));
+        
+        // Accretion disk scales up 1.0 → 2.2 and fades out 0.9 → 0
+        accretionDisk.scale.setScalar(lerp(1.0, 2.2, e));
+        accretionDisk.material.uniforms.uOpacity.value = lerp(0.9, 0, e);
+        
+        // Lensing ring scales up 1.0 → 2.8 and fades out 0.7 → 0
+        lensingRing.scale.setScalar(lerp(1.0, 2.8, e));
+        lensingRing.material.opacity = lerp(0.7, 0, e);
+        
+        // Point light intensity spikes: 2.5 → 8 → 0
+        if (p < 0.5) {
+          pointLight.intensity = lerp(2.5, 8.0, p * 2);
+        } else {
+          pointLight.intensity = lerp(8.0, 0, (p - 0.5) * 2);
         }
-        const p = clamp01(t / CFG.shatterDuration);
-
-        camera.position.z = lerp(2.8, -1.0, easeInOutCubic(p));
-        camera.fov = lerp(50, 65, easeInCubic(p));
-        camera.updateProjectionMatrix();
-
-        post.mat.uniforms.uRgb.value = lerp(0.01, 0.075, Math.sin(p * Math.PI));
-        post.mat.uniforms.uNoise.value = lerp(0.12, 0.9, Math.min(1, p * 2.2));
+        
+        // RGB shift spikes: 0.008 → 0.09
+        post.mat.uniforms.uRgb.value = lerp(0.008, 0.09, e);
+        // Noise: 0 → 0.8
+        post.mat.uniforms.uNoise.value = lerp(0, 0.8, e);
         post.mat.uniforms.uTime.value = totalElapsed;
 
         if (scanlinesRef.current) scanlinesRef.current.style.opacity = p < 0.8 ? "0.55" : "0";
 
-        shards.forEach((s) => {
-          s.position.addScaledVector(s.userData.dir, s.userData.speed * dt);
-          s.rotation.x += s.userData.spin.x * dt;
-          s.rotation.y += s.userData.spin.y * dt;
-          s.rotation.z += s.userData.spin.z * dt;
-        });
+        stars.rotation.y += dt * 0.05; // speed up slightly
 
         if (p >= 1) {
           phase = PHASE.FLY;
@@ -342,30 +312,32 @@ export default function CrystalTransition({ onComplete }) {
         const p = clamp01(t / CFG.flyDuration);
         const e = easeInOutCubic(p);
 
-        camera.position.z = lerp(-1.0, -18, e);
-        camera.fov = lerp(65, 52, e);
+        // Camera blasts through: z: 0.8 → z: -20
+        camera.position.z = lerp(0.8, -20, e);
+        camera.fov = lerp(50, 65, e);
         camera.updateProjectionMatrix();
 
-        post.mat.uniforms.uRgb.value = lerp(0.075, 0.002, easeOutCubic(Math.min(1, p * 1.4)));
-        post.mat.uniforms.uNoise.value = lerp(0.9, 0, easeOutCubic(Math.min(1, p * 1.6)));
+        // Singularity fades out over first 40%
+        const singP = clamp01(p / 0.4);
+        singularityMat.opacity = lerp(1, 0, singP);
+        
+        // RGB shift: 0.09 → 0
+        post.mat.uniforms.uRgb.value = lerp(0.09, 0, easeOutCubic(p));
+        // Noise: 0.8 → 0
+        post.mat.uniforms.uNoise.value = lerp(0.8, 0, easeOutCubic(p));
         post.mat.uniforms.uTime.value = totalElapsed;
 
         if (scanlinesRef.current)
           scanlinesRef.current.style.opacity = p < 0.3 ? String(lerp(0.55, 0, p / 0.3)) : "0";
 
-        shards.forEach((s) => {
-          s.position.addScaledVector(s.userData.dir, s.userData.speed * dt * 0.5);
-          s.rotation.x += s.userData.spin.x * dt * 0.5;
-          s.rotation.y += s.userData.spin.y * dt * 0.5;
-          s.material.opacity = lerp(0.92, 0, easeInCubic(Math.min(1, p * 1.5)));
-        });
-
-        stars.rotation.y += dt * 0.008;
+        // Stars streak past (increase opacity briefly)
+        const starSpeed = Math.sin(p * Math.PI);
+        stars.material.opacity = lerp(0.7, 1.0, starSpeed);
+        stars.rotation.y += dt * (0.05 + starSpeed * 0.1);
 
         if (p >= 1) {
           phase = PHASE.ARRIVE;
           phaseStart = totalElapsed;
-          shards.forEach((s) => (s.visible = false));
         }
       } else if (phase === PHASE.ARRIVE) {
         const p = clamp01(t / CFG.arriveDuration);
@@ -425,3 +397,4 @@ export default function CrystalTransition({ onComplete }) {
     </>
   );
 }
+
