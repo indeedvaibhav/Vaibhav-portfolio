@@ -32,9 +32,9 @@ import { CAMERA_PATH_POINTS } from '../utils/constants';
 // ─── Tuning knobs ────────────────────────────────────────────────────────────
 
 /** Lateral offset amplitude in world units (on the Frenet normal axis). */
-const SWIRL_AMPLITUDE_N = 0.45;
+const SWIRL_AMPLITUDE_N = 1.2;
 /** Vertical offset amplitude in world units (on the Frenet binormal axis). */
-const SWIRL_AMPLITUDE_B = 0.22;
+const SWIRL_AMPLITUDE_B = 0.5;
 /** How many full sine cycles happen over the entire spline length. */
 const SWIRL_FREQUENCY = 6.5;
 /** Phase difference between lateral and vertical swirl (creates figure-8/helix). */
@@ -48,7 +48,14 @@ const BANK_GAIN = 1.8;
 const MAX_BANK_ANGLE = Math.PI / 3;
 
 /** Uniform scale applied to the entire rocket group. */
-const ROCKET_SCALE = 0.18;
+const ROCKET_SCALE = 0.04;
+
+/**
+ * Fixed lateral separation from the camera spline (world units, along the
+ * Frenet normal). Keeps the rocket visibly to the side of the camera rather
+ * than dead-ahead on the path. Increase to push it further off-screen-centre.
+ */
+const ROCKET_SIDE_OFFSET = 2.5;
 
 /** Small t-delta used for finite-difference tangent sampling (banking). */
 const BANK_DT = 0.004;
@@ -365,10 +372,12 @@ export default function RocketGuide() {
     _binormal.crossVectors(_tan, _worldUp).normalize();
     _normal.crossVectors(_binormal, _tan).normalize();
 
-    // ── 4. Swirling offset (sine wave in Frenet frame) ────────────────────
+    // ── 4. Swirling offset + fixed side offset (sine wave in Frenet frame) ──
     const phase = t * Math.PI * 2 * SWIRL_FREQUENCY;
-    const offN  = Math.sin(phase)                      * SWIRL_AMPLITUDE_N;
-    const offB  = Math.sin(phase + SWIRL_PHASE_OFFSET) * SWIRL_AMPLITUDE_B;
+    // ROCKET_SIDE_OFFSET keeps the rocket off the camera centre-line;
+    // the sine terms add the living, weaving motion on top of that.
+    const offN  = ROCKET_SIDE_OFFSET + Math.sin(phase)                      * SWIRL_AMPLITUDE_N;
+    const offB  =                      Math.sin(phase + SWIRL_PHASE_OFFSET) * SWIRL_AMPLITUDE_B;
 
     group.position
       .copy(_pos)
