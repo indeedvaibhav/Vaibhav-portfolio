@@ -178,6 +178,8 @@ function ExhaustTrail({ rocketRef }) {
   const col        = useMemo(() => new THREE.Color(),    []);
   const worldPos   = useMemo(() => new THREE.Vector3(),  []);
   const worldDir   = useMemo(() => new THREE.Vector3(),  []);
+  // FIX #4 — world-space quaternion scratch (avoids using local .quaternion)
+  const _wq        = useMemo(() => new THREE.Quaternion(), []);
 
   const sphereGeo  = useMemo(() => new THREE.SphereGeometry(1, 4, 4), []);
   const trailMat   = useMemo(
@@ -213,8 +215,11 @@ function ExhaustTrail({ rocketRef }) {
         // World position of the rocket group
         rocket.getWorldPosition(worldPos);
 
-        // Rearward direction in world space (-Y of the rocket)
-        worldDir.set(0, -1, 0).applyQuaternion(rocket.quaternion);
+        // FIX #4 — rearward direction uses *world* quaternion, not local.
+        // rocket.quaternion is in parent-local space; if the parent group has
+        // any rotation the trail would point in the wrong direction.
+        rocket.getWorldQuaternion(_wq);
+        worldDir.set(0, -1, 0).applyQuaternion(_wq);
 
         // Spawn slightly behind the engine bell mouth
         slot.position.copy(worldPos).addScaledVector(worldDir, 0.55);
@@ -312,19 +317,24 @@ export default function RocketGuide() {
   }, []);
 
   // Persistent scratch objects (no GC pressure per frame)
-  const _pos      = useMemo(() => new THREE.Vector3(),    []);
-  const _tan      = useMemo(() => new THREE.Vector3(),    []);
-  const _normal   = useMemo(() => new THREE.Vector3(),    []);
-  const _binormal = useMemo(() => new THREE.Vector3(),    []);
-  const _mx       = useMemo(() => new THREE.Matrix4(),    []);
-  const _qBase    = useMemo(() => new THREE.Quaternion(), []);
-  const _qBank    = useMemo(() => new THREE.Quaternion(), []);
-  const _tanA     = useMemo(() => new THREE.Vector3(),    []);
-  const _tanB     = useMemo(() => new THREE.Vector3(),    []);
-  const _cross    = useMemo(() => new THREE.Vector3(),    []);
-  const _fwd      = useMemo(() => new THREE.Vector3(),    []);
-  const _fixAxis  = useMemo(() => new THREE.Vector3(1, 0, 0), []);
-  const _fixQ     = useMemo(
+  const _pos        = useMemo(() => new THREE.Vector3(),    []);
+  const _tan        = useMemo(() => new THREE.Vector3(),    []);
+  const _normal     = useMemo(() => new THREE.Vector3(),    []);
+  const _binormal   = useMemo(() => new THREE.Vector3(),    []);
+  const _mx         = useMemo(() => new THREE.Matrix4(),    []);
+  const _qBase      = useMemo(() => new THREE.Quaternion(), []);
+  const _qBank      = useMemo(() => new THREE.Quaternion(), []);
+  const _tanA       = useMemo(() => new THREE.Vector3(),    []);
+  const _tanB       = useMemo(() => new THREE.Vector3(),    []);
+  const _cross      = useMemo(() => new THREE.Vector3(),    []);
+  const _fwd        = useMemo(() => new THREE.Vector3(),    []);
+  // FIX #3 — persistent up-vector refs; mutated via .set() each frame
+  const _worldUp    = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  // FIX #3b — persistent lookAt origin/up refs so _mx.lookAt() allocates nothing
+  const _lookOrigin = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+  const _lookUp     = useMemo(() => new THREE.Vector3(0, 0, 1), []);
+  // FIX cleanup — _fixAxis was declared but never used; removed
+  const _fixQ       = useMemo(
     () => new THREE.Quaternion().setFromAxisAngle(
       new THREE.Vector3(1, 0, 0),
       -Math.PI / 2
@@ -345,11 +355,14 @@ export default function RocketGuide() {
     spline.getTangentAt(t, _tan).normalize();
 
     // ── 3. Frenet normal & binormal (stable up-vector fallback) ──────────
-    const worldUp = Math.abs(_tan.y) < 0.98
-      ? new THREE.Vector3(0, 1, 0)
-      : new THREE.Vector3(1, 0, 0);
+    // FIX #3 — mutate _worldUp in place; no per-frame allocation.
+    if (Math.abs(_tan.y) < 0.98) {
+      _worldUp.set(0, 1, 0);
+    } else {
+      _worldUp.set(1, 0, 0);
+    }
 
-    _binormal.crossVectors(_tan, worldUp).normalize();
+    _binormal.crossVectors(_tan, _worldUp).normalize();
     _normal.crossVectors(_binormal, _tan).normalize();
 
     // ── 4. Swirling offset (sine wave in Frenet frame) ────────────────────
@@ -366,7 +379,8 @@ export default function RocketGuide() {
     // lookAt gives Z→forward; RocketMesh is built along +Y, so we apply a
     // -90° X fix quaternion afterwards.
     _fwd.copy(_tan);
-    _mx.lookAt(new THREE.Vector3(0, 0, 0), _fwd, new THREE.Vector3(0, 0, 1));
+    // FIX #3b — reuse persistent _lookOrigin / _lookUp; no per-frame allocation.
+    _mx.lookAt(_lookOrigin, _fwd, _lookUp);
     _qBase.setFromRotationMatrix(_mx);
     _qBase.multiply(_fixQ);
 
