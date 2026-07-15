@@ -27,38 +27,39 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { scrollState } from '../utils/scrollState';
-import { CAMERA_PATH_POINTS } from '../utils/constants';
 
 // ─── Tuning knobs ────────────────────────────────────────────────────────────
+//
+// The rocket is positioned in CAMERA SPACE so it is always inside the frustum
+// regardless of where the camera sits on the 3D spline.  Adjust these to taste:
 
-/** Lateral offset amplitude in world units (on the Frenet normal axis). */
-const SWIRL_AMPLITUDE_N = 1.2;
-/** Vertical offset amplitude in world units (on the Frenet binormal axis). */
-const SWIRL_AMPLITUDE_B = 0.5;
-/** How many full sine cycles happen over the entire spline length. */
+/** Units ahead of the camera lens — keeps rocket well past the near-plane (0.1). */
+const ROCKET_FORWARD_DIST  = 2.5;
+/** Units to the right in camera space — plants rocket in right-side of frame. */
+const ROCKET_RIGHT_OFFSET  = 0.80;
+/**
+ * Units below camera centre (negative = lower half of screen).
+ * Combined with the forward placement this creates a lower-right anchor that
+ * mirrors the paper-plane-follows-scroll feel on a vertical scroll site.
+ */
+const ROCKET_DOWN_OFFSET   = -0.45;
+
+/** Lateral (camera-right) swirl amplitude — side-to-side wiggle visible in screen space. */
+const SWIRL_AMPLITUDE_N = 0.22;
+/** Vertical (camera-up) swirl amplitude — up/down bob visible in screen space. */
+const SWIRL_AMPLITUDE_B = 0.10;
+/** Full sine cycles over the entire 0→1 scroll journey. */
 const SWIRL_FREQUENCY = 6.5;
-/** Phase difference between lateral and vertical swirl (creates figure-8/helix). */
+/** Phase offset between lateral and vertical swirl (creates a gentle oval path). */
 const SWIRL_PHASE_OFFSET = Math.PI / 2.3;
 
-/** Quaternion slerp factor per frame (lower = smoother but laggier). */
-const SLERP_FACTOR = 0.12;
-/** Banking gain: how many radians of roll per unit of turn rate. */
-const BANK_GAIN = 1.8;
-/** Clamp max roll so the rocket never flips. */
-const MAX_BANK_ANGLE = Math.PI / 3;
+/** Quaternion slerp factor — lower is smoother, higher is snappier. */
+const SLERP_FACTOR = 0.10;
+/** Max roll (banking) angle from lateral swirl rate. */
+const MAX_BANK_ANGLE = Math.PI / 3.5;
 
-/** Uniform scale applied to the entire rocket group. */
-const ROCKET_SCALE = 0.04;
-
-/**
- * Fixed lateral separation from the camera spline (world units, along the
- * Frenet normal). Keeps the rocket visibly to the side of the camera rather
- * than dead-ahead on the path. Increase to push it further off-screen-centre.
- */
-const ROCKET_SIDE_OFFSET = 2.5;
-
-/** Small t-delta used for finite-difference tangent sampling (banking). */
-const BANK_DT = 0.004;
+/** Uniform scale of the rocket group. Tune between 0.01–0.03 for desired size. */
+const ROCKET_SCALE = 0.015;
 
 // ─── Exhaust trail settings ───────────────────────────────────────────────────
 
@@ -206,11 +207,11 @@ function ExhaustTrail({ rocketRef }) {
     const rocket = rocketRef.current;
     if (!mesh || !rocket) return;
 
-    const t       = scrollState.progress;
-    const visible = t > 0.005 && t < 0.985;
+    // Always emit — the canvas is only rendered during idle phase, so there
+    // is no need to gate on t here.  Particles naturally die before piling up.
 
     // ── Emission ──────────────────────────────────────────────────────────
-    if (visible) {
+    if (true) {
       emitAcc.current += delta * TRAIL_EMIT_HZ;
 
       while (emitAcc.current >= 1) {
@@ -314,33 +315,21 @@ function ExhaustTrail({ rocketRef }) {
  * CameraController).  No props required.
  */
 export default function RocketGuide() {
-  const groupRef    = useRef();
-  const targetQuat  = useRef(new THREE.Quaternion());
+  const groupRef   = useRef();
+  const targetQuat = useRef(new THREE.Quaternion());
 
-  // Same spline as CameraController — built from identical parameters
-  const spline = useMemo(() => {
-    const pts = CAMERA_PATH_POINTS.map(([x, y, z]) => new THREE.Vector3(x, y, z));
-    return new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-  }, []);
-
-  // Persistent scratch objects (no GC pressure per frame)
-  const _pos        = useMemo(() => new THREE.Vector3(),    []);
-  const _tan        = useMemo(() => new THREE.Vector3(),    []);
-  const _normal     = useMemo(() => new THREE.Vector3(),    []);
-  const _binormal   = useMemo(() => new THREE.Vector3(),    []);
+  // Persistent scratch objects — allocated once, mutated every frame (zero GC).
+  // Camera-relative approach: no spline or Frenet-frame refs needed.
+  const _camFwd     = useMemo(() => new THREE.Vector3(),    []);
+  const _worldUp    = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const _camRight   = useMemo(() => new THREE.Vector3(),    []);
+  const _camUp      = useMemo(() => new THREE.Vector3(),    []);
   const _mx         = useMemo(() => new THREE.Matrix4(),    []);
   const _qBase      = useMemo(() => new THREE.Quaternion(), []);
   const _qBank      = useMemo(() => new THREE.Quaternion(), []);
-  const _tanA       = useMemo(() => new THREE.Vector3(),    []);
-  const _tanB       = useMemo(() => new THREE.Vector3(),    []);
-  const _cross      = useMemo(() => new THREE.Vector3(),    []);
-  const _fwd        = useMemo(() => new THREE.Vector3(),    []);
-  // FIX #3 — persistent up-vector refs; mutated via .set() each frame
-  const _worldUp    = useMemo(() => new THREE.Vector3(0, 1, 0), []);
-  // FIX #3b — persistent lookAt origin/up refs so _mx.lookAt() allocates nothing
   const _lookOrigin = useMemo(() => new THREE.Vector3(0, 0, 0), []);
   const _lookUp     = useMemo(() => new THREE.Vector3(0, 0, 1), []);
-  // FIX cleanup — _fixAxis was declared but never used; removed
+  // Corrects lookAt (gives Z-forward) → rocket is built Y-up, so rotate -90° on X.
   const _fixQ       = useMemo(
     () => new THREE.Quaternion().setFromAxisAngle(
       new THREE.Vector3(1, 0, 0),
@@ -349,73 +338,57 @@ export default function RocketGuide() {
     []
   );
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const group = groupRef.current;
     if (!group) return;
 
     const t = THREE.MathUtils.clamp(scrollState.progress, 0, 0.999);
 
-    // ── 1. Spline position ────────────────────────────────────────────────
-    spline.getPoint(t, _pos);
+    // ── 1. Camera world-space axes ────────────────────────────────────────
+    // Derive camera-right and camera-up from world-up so the rocket stays
+    // level even if the camera rolls slightly — prevents unexpected spinning.
+    camera.getWorldDirection(_camFwd);
+    _worldUp.set(0, 1, 0);
+    _camRight.crossVectors(_camFwd, _worldUp).normalize();
+    _camUp.crossVectors(_camRight, _camFwd).normalize();
 
-    // ── 2. Frenet tangent ─────────────────────────────────────────────────
-    spline.getTangentAt(t, _tan).normalize();
+    // ── 2. Sine-wave swirl in camera space ────────────────────────────────
+    // Both axes are screen-space (right = screen X, up = screen Y), so the
+    // weave reads as side-to-side / up-down motion matching the scroll direction.
+    const phase  = t * Math.PI * 2 * SWIRL_FREQUENCY;
+    const swirlR = Math.sin(phase)                      * SWIRL_AMPLITUDE_N;
+    const swirlU = Math.sin(phase + SWIRL_PHASE_OFFSET) * SWIRL_AMPLITUDE_B;
 
-    // ── 3. Frenet normal & binormal (stable up-vector fallback) ──────────
-    // FIX #3 — mutate _worldUp in place; no per-frame allocation.
-    if (Math.abs(_tan.y) < 0.98) {
-      _worldUp.set(0, 1, 0);
-    } else {
-      _worldUp.set(1, 0, 0);
-    }
-
-    _binormal.crossVectors(_tan, _worldUp).normalize();
-    _normal.crossVectors(_binormal, _tan).normalize();
-
-    // ── 4. Swirling offset + fixed side offset (sine wave in Frenet frame) ──
-    const phase = t * Math.PI * 2 * SWIRL_FREQUENCY;
-    // ROCKET_SIDE_OFFSET keeps the rocket off the camera centre-line;
-    // the sine terms add the living, weaving motion on top of that.
-    const offN  = ROCKET_SIDE_OFFSET + Math.sin(phase)                      * SWIRL_AMPLITUDE_N;
-    const offB  =                      Math.sin(phase + SWIRL_PHASE_OFFSET) * SWIRL_AMPLITUDE_B;
-
+    // ── 3. Position: fixed camera-relative anchor + swirl ─────────────────
+    // ROCKET_FORWARD_DIST ensures the rocket is always inside the frustum
+    // (camera near-plane is 0.1, so 2.5 units ahead is safely visible).
     group.position
-      .copy(_pos)
-      .addScaledVector(_normal,   offN)
-      .addScaledVector(_binormal, offB);
+      .copy(camera.position)
+      .addScaledVector(_camFwd,   ROCKET_FORWARD_DIST)
+      .addScaledVector(_camRight, ROCKET_RIGHT_OFFSET  + swirlR)
+      .addScaledVector(_camUp,    ROCKET_DOWN_OFFSET   + swirlU);
 
-    // ── 5. Orientation: align local +Y → tangent direction ────────────────
-    // lookAt gives Z→forward; RocketMesh is built along +Y, so we apply a
-    // -90° X fix quaternion afterwards.
-    _fwd.copy(_tan);
-    // FIX #3b — reuse persistent _lookOrigin / _lookUp; no per-frame allocation.
-    _mx.lookAt(_lookOrigin, _fwd, _lookUp);
+    // ── 4. Orientation: rocket faces the camera's forward direction ────────
+    _mx.lookAt(_lookOrigin, _camFwd, _lookUp);
     _qBase.setFromRotationMatrix(_mx);
-    _qBase.multiply(_fixQ);
+    _qBase.multiply(_fixQ); // align Y-up mesh to Z-forward lookAt convention
 
-    // ── 6. Banking: proportional to signed turn rate ───────────────────────
-    const tA = Math.max(0,     t - BANK_DT);
-    const tB = Math.min(0.999, t + BANK_DT);
-    spline.getTangentAt(tA, _tanA).normalize();
-    spline.getTangentAt(tB, _tanB).normalize();
-
-    _cross.crossVectors(_tanA, _tanB);
-    const turnRate  = _cross.dot(_tan);   // signed curvature in forward direction
+    // ── 5. Banking: cos(phase) is the exact derivative of sin(phase) ───────
+    // Positive cosine → swirling right → bank right (negative roll).
+    // No spline sampling needed — purely analytic from the swirl function.
     const bankAngle = THREE.MathUtils.clamp(
-      (turnRate * BANK_GAIN) / (BANK_DT * 2),
+      -Math.cos(phase) * MAX_BANK_ANGLE * 0.55,
       -MAX_BANK_ANGLE,
       MAX_BANK_ANGLE
     );
-
-    // Rotate around the forward axis (tangent)
-    _qBank.setFromAxisAngle(_fwd.normalize(), -bankAngle);
+    _qBank.setFromAxisAngle(_camFwd.normalize(), bankAngle);
     targetQuat.current.copy(_qBase).premultiply(_qBank);
 
-    // ── 7. Slerp toward target quaternion ────────────────────────────────
+    // ── 6. Slerp toward target ────────────────────────────────────────────
     group.quaternion.slerp(targetQuat.current, SLERP_FACTOR);
 
-    // ── 8. Visibility gate ────────────────────────────────────────────────
-    group.visible = t > 0.005 && t < 0.985;
+    // ── 7. Always visible — canvas only renders during idle phase anyway ──
+    group.visible = true;
   });
 
   return (
