@@ -13,6 +13,7 @@ import Nebula from './Nebula';
 import CoreSphere from './CoreSphere';
 import AchievementField from './AchievementField';
 import CameraController from './CameraController';
+import RocketGuide from './RocketGuide';
 import { CAMERA, POSTPROCESSING, SCENE } from '../utils/constants';
 
 /**
@@ -66,6 +67,7 @@ export default function SpaceScene() {
         <Starfield />
         <CoreSphere />
         <AchievementField />
+        <RocketGuide />
       </Suspense>
 
       <CameraController />
