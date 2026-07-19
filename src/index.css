@@ -328,14 +328,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   pointer-events: none;
 }
 
-/* ─── Intro Overlay ──────────────────────────── */
+/* ─── Intro Overlay ──────────────────────────────────────────────────────── */
 .intro-overlay {
   position: fixed; inset: 0; z-index: 15;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 15vh 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 15vh 0 0;
   pointer-events: none;
 }
-.intro-content-top, .intro-content-bottom {
+.intro-content-top {
   text-align: center;
   max-width: 600px;
   padding: 0 var(--space-xl);
@@ -362,54 +362,116 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.intro-tagline {
+
+/* ─── Hero Split Side Panels ─────────────────────────────────────────────── */
+
+/* LEFT — Instrument Serif italic personality lines */
+.hero-side-left {
+  position: absolute;
+  left: 5vw;
+  top: 58%;                          /* vertically centred with the sun */
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  max-width: 220px;
+  pointer-events: none;
+  z-index: 16;
+}
+.hero-serif-line {
+  display: block;
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-lg);
-}
-.intro-meta {
-  font-family: var(--font-body);
-  font-weight: 400;
-  font-size: 1rem;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
-}
-.intro-sep {
-  color: var(--accent-gold);
-  opacity: 0.4;
-}
-.intro-focus {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-.intro-focus-tag {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  color: var(--accent-gold);
-  padding: 3px 12px;
-  background: var(--accent-gold-dim);
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 170, 51, 0.15);
-  /* Stagger animation */
+  font-size: clamp(0.95rem, 1.6vw, 1.3rem);
+  line-height: 1.9;
+  color: rgba(241, 230, 210, 0.72);
+  letter-spacing: 0.01em;
+  /* Initial hidden state */
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateX(-10px);
+  transition: opacity 0.55s var(--ease-out), transform 0.55s var(--ease-out);
+}
+.hero-serif-line--vis {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* RIGHT — DM Mono info + vertical pills */
+.hero-side-right {
+  position: absolute;
+  right: 5vw;
+  top: 58%;                          /* vertically centred with the sun */
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: auto;
+  z-index: 16;
+}
+
+/* Info cluster with left accent bar */
+.hero-info-cluster {
+  display: flex;
+  flex-direction: column;
+  border-left: 1.5px solid rgba(255, 180, 84, 0.4);
+  padding-left: 12px;
+  margin-bottom: 24px;
+}
+.hero-info-item {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: clamp(0.68rem, 1.2vw, 0.82rem);
+  line-height: 2.0;
+  color: rgba(238, 241, 247, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  /* Initial hidden state — drift from right */
+  opacity: 0;
+  transform: translateX(10px);
   transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
 }
-.intro-focus--ready .intro-focus-tag {
+.hero-info-item--vis {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
+}
+
+/* Vertical pill stack */
+.hero-pills-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+.hero-side-pill {
+  display: block;
+  width: fit-content;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 180, 84, 0.8);
+  background: rgba(255, 180, 84, 0.08);
+  border: 1px solid rgba(255, 180, 84, 0.25);
+  border-radius: 4px;
+  padding: 6px 14px;
+  margin-bottom: 8px;
+  cursor: default;
+  /* Stagger animation — drift from right */
+  opacity: 0;
+  transform: translateX(10px);
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.5s var(--ease-out),
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+.hero-side-pill--vis {
+  opacity: 1;
+  transform: translateX(0);
+}
+.hero-side-pill:hover {
+  background: rgba(255, 180, 84, 0.15);
+  border-color: rgba(255, 180, 84, 0.6);
 }
 
 /* ─── Hero Cinematic Elements ───────────────────────── */
@@ -478,34 +540,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   animation: tw-blink 1s step-end infinite;
 }
 @keyframes tw-blink { 50% { opacity: 0; } }
-.intro-meta-item {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.5s, transform 0.5s;
-}
-.intro-meta-item--vis {
-  opacity: 1;
-  transform: translateY(0);
-}
-.intro-location {
-  position: relative;
-  pointer-events: auto;
-  cursor: help;
-  border-bottom: 1px dashed rgba(255,255,255,0.2);
-}
-.loc-tooltip {
-  position: absolute;
-  bottom: 100%; left: 50%;
-  transform: translate(-50%, -8px);
-  background: var(--bg-panel);
-  border: 1px solid var(--bg-panel-border);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body); font-size: 10px;
-  white-space: nowrap;
-  color: var(--text-primary);
-  pointer-events: none;
-}
 
 /* ─── Top Navigation ─────────────────────────── */
 .top-nav {
@@ -797,9 +831,29 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .hud-hint { bottom: var(--space-md); right: var(--space-md); font-size: 11px; }
   .audio-toggle { bottom: var(--space-md); right: var(--space-md); }
 
-  .intro-content-top, .intro-content-bottom { padding: 0 var(--space-md); }
+  .intro-content-top { padding: 0 var(--space-md); }
   .outro-content { padding: var(--space-md); }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+}
+
+/* ─── Responsive: hide split layout on narrow screens ────────────────────── */
+@media (max-width: 900px) {
+  /* Hide the absolutely positioned side panels */
+  .hero-side-left,
+  .hero-side-right {
+    display: none;
+  }
+
+  /* Show a compact centred tagline block below the sun instead */
+  .intro-overlay::after {
+    content: '';
+    /* spacer — the sun already occupies the visual centre */
+  }
+
+  /* Mobile fallback: centre the name more tightly */
+  .intro-name {
+    font-size: clamp(28px, 8vw, 44px);
+  }
 }

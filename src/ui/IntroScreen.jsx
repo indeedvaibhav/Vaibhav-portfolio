@@ -234,7 +234,7 @@ export default function IntroScreen() {
         </h1>
 
         <p ref={subtitleRef} className="intro-screen__sub">
-          9 missions. 1 core. All mine.
+
         </p>
 
         <button

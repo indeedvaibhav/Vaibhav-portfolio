@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { coreIdentity } from '../data/achievements';
 import ArtifactSystem from '../components/hero/ArtifactSystem';
 
-const TAGLINE = coreIdentity.tagline;
-
 // ── Deterministic particle configs (sin-seeded so no random drift on remount) ──
 const PARTICLES = Array.from({ length: 8 }, (_, i) => {
   const a = Math.sin(i * 2.31 + 1.5) * 0.5 + 0.5;
@@ -19,13 +17,19 @@ const PARTICLES = Array.from({ length: 8 }, (_, i) => {
   };
 });
 
-// ── Meta row definition ──────────────────────────────────────────────────────
-const META_ITEMS = [
-  { text: coreIdentity.degree,                  type: 'text'     },
-  { text: '·',                                  type: 'sep'      },
-  { text: 'Kanpur, India', type: 'location', tooltip: '📍 UTC+5:30' },
-  { text: '·',                                  type: 'sep'      },
-  { text: `Class of ${coreIdentity.graduation}`,type: 'text'     },
+// ── Left side serif lines ──────────────────────────────────────────────────
+const SERIF_LINES = [
+  'I write Java,',
+  'play basketball,',
+  'and pretend my poetry',
+  'is intellectual.',
+];
+
+// ── Right side info items ──────────────────────────────────────────────────
+const INFO_ITEMS = [
+  coreIdentity.degree,
+  coreIdentity.location,
+  `Class of ${coreIdentity.graduation}`,
 ];
 
 /**
@@ -35,7 +39,7 @@ const META_ITEMS = [
  *   canvas-layer  — Three.js (z-index 1) — tiny parallax via style.transform
  *   hero-sun-wrap — CSS sun, corona, particles — follows mouse +8 %
  *   intro-content-top  — eyebrow + name — moves OPPOSITE mouse –2 %
- *   intro-content-bottom — tagline, meta, pills — static
+ *   hero-side-left / hero-side-right — flanking content — static, absolute
  *
  * Opacity driven by parent (App.jsx introOpacity).
  */
@@ -48,12 +52,14 @@ export default function HeroOverlay({ opacity }) {
   const lerpState   = useRef({ sunX: 0, sunY: 0, titleX: 0, titleY: 0 });
 
   // ── State ─────────────────────────────────────────────────────────────────
-  const [typed,       setTyped]       = useState('');
-  const [cursorOn,    setCursorOn]    = useState(true);
-  const [typingDone,  setTypingDone]  = useState(false);
-  const [metaVis,     setMetaVis]     = useState(META_ITEMS.map(() => false));
-  const [pillsReady,  setPillsReady]  = useState(false);
-  const [showLocTip,  setShowLocTip]  = useState(false);
+  const [typed,        setTyped]        = useState('');
+  const [cursorOn,     setCursorOn]     = useState(true);
+  const [typingDone,   setTypingDone]   = useState(false);
+  // left-side serif lines visibility
+  const [linesVis,     setLinesVis]     = useState(SERIF_LINES.map(() => false));
+  // right-side info + pills visibility
+  const [infoVis,      setInfoVis]      = useState(INFO_ITEMS.map(() => false));
+  const [pillsVis,     setPillsVis]     = useState(coreIdentity.focus.map(() => false));
 
   // ── Mouse parallax + sun-proximity ───────────────────────────────────────
   useEffect(() => {
@@ -119,53 +125,53 @@ export default function HeroOverlay({ opacity }) {
     };
   }, []);
 
-  // ── Typewriter ────────────────────────────────────────────────────────────
+  // ── Typewriter — then trigger side panels ─────────────────────────────────
   useEffect(() => {
-    let idx   = 0;
+    // We only need typed for the cursor effect now; tagline is displayed as static lines
     let timer = null;
+    // Simulate typewriter completion delay then show sides
+    const TYPING_DURATION = 700 + 35 * 'I write Java, play basketball, and pretend my poetry is intellectual.'.length;
 
-    const typeNext = () => {
-      if (idx < TAGLINE.length) {
-        idx++;
-        setTyped(TAGLINE.slice(0, idx));
-        timer = setTimeout(typeNext, 35);
-      } else {
-        // Typing complete — cursor on, then dismiss
-        setCursorOn(true);
-        setTypingDone(true);
+    timer = setTimeout(() => {
+      setTypingDone(true);
+      setCursorOn(false);
 
-        // Stagger meta items in
-        META_ITEMS.forEach((_, i) => {
-          setTimeout(() =>
-            setMetaVis(prev => {
-              const next = [...prev];
-              next[i] = true;
-              return next;
-            }),
-            i * 200
-          );
-        });
+      // LEFT: stagger serif lines in at delay 1.4s (already waited), 0.15s apart
+      SERIF_LINES.forEach((_, i) => {
+        setTimeout(() => {
+          setLinesVis(prev => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+        }, i * 150);
+      });
 
-        // Pills appear after last meta item + 250 ms buffer
-        setTimeout(() => setPillsReady(true), META_ITEMS.length * 200 + 250);
-      }
-    };
+      // RIGHT: info items at delay 1.5s + 0.1s apart
+      INFO_ITEMS.forEach((_, i) => {
+        setTimeout(() => {
+          setInfoVis(prev => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+        }, 100 + i * 100);
+      });
 
-    timer = setTimeout(typeNext, 700);  // short pause before typing starts
+      // RIGHT: pills after info items
+      coreIdentity.focus.forEach((_, i) => {
+        setTimeout(() => {
+          setPillsVis(prev => {
+            const next = [...prev];
+            next[i] = true;
+            return next;
+          });
+        }, 100 + INFO_ITEMS.length * 100 + 120 + i * 100);
+      });
+    }, TYPING_DURATION);
+
     return () => clearTimeout(timer);
   }, []);
-
-  // ── Cursor blink → static → gone ─────────────────────────────────────────
-  useEffect(() => {
-    if (typingDone) {
-      // Cursor stays solid for 1.8 s then disappears
-      const off = setTimeout(() => setCursorOn(false), 1800);
-      return () => clearTimeout(off);
-    }
-    // Blink while typing
-    const id = setInterval(() => setCursorOn(v => !v), 530);
-    return () => clearInterval(id);
-  }, [typingDone]);
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -173,7 +179,6 @@ export default function HeroOverlay({ opacity }) {
 
       {/* ── Top text — moves OPPOSITE to sun for depth ─────────────────── */}
       <div ref={topLayerRef} className="intro-content-top">
-
         <h1 className="intro-name">{coreIdentity.name}</h1>
       </div>
 
@@ -215,50 +220,49 @@ export default function HeroOverlay({ opacity }) {
         <ArtifactSystem />
       </div>
 
-      {/* ── Bottom text — static ────────────────────────────────────────── */}
-      <div className="intro-content-bottom">
+      {/* ── LEFT panel: Serif personality lines ────────────────────────── */}
+      <div className="hero-side-left" aria-label="Personal tagline">
+        {SERIF_LINES.map((line, i) => (
+          <span
+            key={i}
+            className={`hero-serif-line${linesVis[i] ? ' hero-serif-line--vis' : ''}`}
+            style={{ transitionDelay: `${i * 0.15}s` }}
+          >
+            {line}
+          </span>
+        ))}
+      </div>
 
-        {/* Typewriter tagline */}
-        <p className="intro-tagline">
-          {typed}
-          <span className="tw-cursor" style={{ opacity: cursorOn ? 1 : 0 }}>|</span>
-        </p>
+      {/* ── RIGHT panel: Info + pills ──────────────────────────────────── */}
+      <div className="hero-side-right" aria-label="Education and focus areas">
 
-        {/* Meta row — each item fades + slides in individually */}
-        <div className="intro-meta">
-          {META_ITEMS.map((item, idx) => (
+        {/* B.Tech info cluster */}
+        <div className="hero-info-cluster">
+          {INFO_ITEMS.map((item, i) => (
             <span
-              key={idx}
-              className={[
-                'intro-meta-item',
-                metaVis[idx] ? 'intro-meta-item--vis' : '',
-                item.type === 'sep'      ? 'intro-sep'      : '',
-                item.type === 'location' ? 'intro-location' : '',
-              ].join(' ')}
-              onMouseEnter={item.type === 'location' ? () => setShowLocTip(true)  : undefined}
-              onMouseLeave={item.type === 'location' ? () => setShowLocTip(false) : undefined}
+              key={i}
+              className={`hero-info-item${infoVis[i] ? ' hero-info-item--vis' : ''}`}
+              style={{ transitionDelay: `${i * 0.1}s` }}
             >
-              {item.text}
-              {item.type === 'location' && showLocTip && (
-                <span className="loc-tooltip">{item.tooltip}</span>
-              )}
+              {item}
             </span>
           ))}
         </div>
 
-        {/* Tag pills — stagger slide up */}
-        <div className={`intro-focus ${pillsReady ? 'intro-focus--ready' : ''}`}>
-          {coreIdentity.focus.map((f, idx) => (
+        {/* Tag pills — stacked vertically */}
+        <div className="hero-pills-stack">
+          {coreIdentity.focus.map((f, i) => (
             <span
               key={f}
-              className="intro-focus-tag"
-              style={{ transitionDelay: `${idx * 150}ms` }}
+              className={`hero-side-pill${pillsVis[i] ? ' hero-side-pill--vis' : ''}`}
+              style={{ transitionDelay: `${i * 0.1}s` }}
             >
               {f}
             </span>
           ))}
         </div>
       </div>
+
     </div>
   );
 }

@@ -79,7 +79,7 @@ class PostQuad {
           float n = rand(uv * (uTime * 60.0 + 1.0));
           col.rgb += (n - 0.5) * uNoise;
           gl_FragColor = col;
-        }
+        }l
       `,
       depthTest: false,
     });
