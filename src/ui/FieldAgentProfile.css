@@ -36,9 +36,10 @@
 /* ── Main layout ─────────────────────────────────── */
 .fap-content {
   display: flex;
-  width: min(960px, 90vw);
-  gap: 64px;
+  width: min(1040px, 92vw);
+  gap: 48px;
   opacity: 0;
+  align-items: center;
 }
 
 /* ── LEFT: photo column ──────────────────────────── */
@@ -193,34 +194,45 @@
   color: #8891a6;
 }
 
-/* ── RIGHT: data column ──────────────────────────── */
+/* ── RIGHT: data column (Glass Card) ─────────────── */
 .fap-right {
   width: 64%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  
+  /* Glassmorphism Card Aesthetics */
+  background: linear-gradient(145deg, rgba(24, 26, 38, 0.45) 0%, rgba(10, 12, 18, 0.7) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(238, 241, 247, 0.08);
+  border-radius: 24px;
+  padding: 48px 56px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .fap-eyebrow {
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
   letter-spacing: 0.2em;
-  color: #ef4444;
+  color: #4ade80; /* switched to green for better contrast in glass */
   margin-bottom: 20px;
   text-transform: uppercase;
   opacity: 0; /* stagger in */
 }
 
 .fap-name {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(3.5rem, 5.5vw, 4.8rem);
   color: #eef1f7;
-  line-height: 1.0;
-  margin: 0 0 10px;
+  line-height: 0.95;
+  margin: 0 0 14px;
   position: relative;
   overflow: hidden;
   opacity: 0;
+  letter-spacing: 0.02em;
 }
 
 /* Glitch pseudo layer on name */
@@ -326,6 +338,7 @@
     padding: 60px 0;
   }
   .fap-left, .fap-right { width: 100%; }
+  .fap-right { padding: 32px 24px; border-radius: 16px; }
   .fap-photo-wrap { max-width: 260px; margin: 0 auto; }
   .fap-stamp { font-size: 2.5rem; }
   .fap-row {
@@ -334,5 +347,5 @@
     gap: 4px;
   }
   .fap-value { text-align: left; }
-  .fap-name { font-size: clamp(2rem, 10vw, 2.8rem); }
+  .fap-name { font-size: clamp(2.8rem, 12vw, 3.5rem); }
 }
