@@ -188,24 +188,29 @@ export const achievements = [
     eyebrow: 'Achievement 09',
     category: 'Leadership',
     color: '#fbbf24',
-    desc: 'State courts. Marathon roads. School halls. All documented.',
-    description: 'State courts. Marathon roads. School halls. All documented.',
+    desc: 'State courts. Marathon roads. School halls.\n12 certificates. All documented.',
+    description: 'State courts. Marathon roads. School halls. 12 certificates. All documented.',
     summary: 'State courts. Marathon roads. School halls. All documented.',
     tags: ['leadership', 'marathon', 'community', 'sports'],
     links: {},
     position: ASTEROID_POSITIONS[8],
     seed: 2048,
     legacyItems: [
-      { category: "🏀 Basketball", level: "STATE", name: "UP State Basketball Championship", event: "State Championship", year: "2022" },
-      { category: "🏀 Basketball", level: "ZONAL", name: "CISCE Zonal Championship", event: "CISCE Circuit", year: "2022" },
-      { category: "🏀 Basketball", level: "REGIONAL", name: "CISCE Regional Championship", event: "CISCE Circuit", year: "2023" },
-      { category: "🏀 Basketball", level: "WINNER", name: "AAVEG Basketball Tournament", event: "Inter-College", year: "2025" },
-      { category: "🏃 Athletics", level: "5TH PLACE", name: "Kanpur Half Marathon", event: "City Marathon", year: "2022" },
-      { category: "🏃 Athletics", level: "3RD PLACE", name: "Kanpur Half Marathon", event: "City Marathon", year: "2023" },
-      { category: "✍️ Writing", level: "3RD PLACE", name: "Creative Writing Competition", event: "Inter-School", year: "2019" },
-      { category: "✍️ Writing", level: "PARTICIPANT", name: "Literary Competition", event: "Regional Level", year: "2022" },
-      { category: "👑 Leadership", level: "CAPTAIN", name: "House Captain", event: "School Leadership", year: "2022" },
-      { category: "👑 Leadership", level: "CAPTAIN", name: "School Captain", event: "School Leadership", year: "2023" }
+      // ── Basketball ──────────────────────────────────────────────
+      { category: '🏀 Basketball', level: 'WINNER',      name: 'AAVEG Basketball Tournament',             event: 'Inter-College · AITD',           year: '2025', pdfPage: 12 },
+      { category: '🏀 Basketball', level: '1ST PLACE',   name: 'CISCE Games & Sports – Kanpur South Zone', event: 'CISCE Circuit',                   year: '2023', pdfPage: 2  },
+      { category: '🏀 Basketball', level: 'REGIONAL',    name: 'CISCE UP & UK Regional Championship',     event: 'CISCE Circuit',                   year: '2023', pdfPage: 4  },
+      { category: '🏀 Basketball', level: 'NATIONAL',    name: 'CISCE National Sports & Games',           event: 'National Championship',           year: '2022', pdfPage: 5  },
+      { category: '🏀 Basketball', level: 'STATE',       name: 'UP Youth State Basketball Championship',  event: 'UP Basketball Association',       year: '2022', pdfPage: 6  },
+      { category: '🏀 Basketball', level: '2ND PLACE',   name: 'CISCE Kanpur Zone Tournament',            event: 'CISCE Circuit',                   year: '2022', pdfPage: 7  },
+      { category: '🏀 Basketball', level: 'BRONZE',      name: 'Youth Olympic Games – Basketball',        event: 'Youth Olympic Games',             year: '2022', pdfPage: 10 },
+      { category: '🏀 Basketball', level: 'PARTICIPANT', name: 'Shri Arjun Das Khatri Memorial Cup',      event: 'Memorial Basketball Cup',         year: '2020', pdfPage: 8  },
+      // ── Athletics ──────────────────────────────────────────────
+      { category: '🏃 Athletics',  level: '3RD PLACE',   name: 'Fr. Rolfie D’Souza Mini Marathon',         event: 'City Marathon',                   year: '2023', pdfPage: 1  },
+      { category: '🏃 Athletics',  level: '5TH PLACE',   name: 'Mini Marathon Kanpur',                    event: 'City Marathon',                   year: '2022', pdfPage: 9  },
+      // ── Writing ───────────────────────────────────────────────
+      { category: '✍️ Writing',    level: '3RD PLACE',   name: 'ISC/ICSE Inter-School Creative Writing',  event: 'Kanpur Region',                   year: '2019', pdfPage: 11 },
+      { category: '✍️ Writing',    level: 'PARTICIPANT', name: 'ASISC UP & UK Literary Competition',      event: 'Memory Memorial School',          year: '2022', pdfPage: 3  },
     ]
   },
 ];

@@ -542,7 +542,7 @@ export default function AsteroidCard() {
               {ach.id === 'legacy' && Array.isArray(ach.legacyItems) && (
                 <div className="custom-mission-content">
                   <div className="filter-pills-row">
-                    {['🏀 Basketball','🏃 Athletics','✍️ Writing','👑 Leadership'].map(f => (
+                    {['🏀 Basketball','🏃 Athletics','✍️ Writing'].map(f => (
                       <button key={f}
                         className={`filter-pill legacy-filter ${legacyFilter===f?'active':''}`}
                         onClick={e => {
@@ -570,6 +570,33 @@ export default function AsteroidCard() {
                           <span className="card-issuer">{item.event??''}</span>
                           <span className="card-year">{item.year??''}</span>
                         </div>
+                        {item.pdfPage && (
+                          <a
+                            href={`/certificates/certificates.pdf#page=${item.pdfPage}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="cert-view-link"
+                            style={{
+                              marginTop: '14px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              fontSize: '0.68rem',
+                              fontFamily: 'var(--font-mono)',
+                              color: '#b8893d',
+                              textDecoration: 'none',
+                              opacity: 0.85,
+                              transition: 'opacity 0.2s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                              <path d="M1 13L13 1M13 1H5M13 1V9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            VIEW CERTIFICATE
+                          </a>
+                        )}
                       </div>
                     ))}
                   </div>
