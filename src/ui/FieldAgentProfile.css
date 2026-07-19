@@ -1,3 +1,7 @@
+/* ══════════════════════════════════════════════════
+   FIELD AGENT PROFILE — Enhanced Dossier UI
+   ══════════════════════════════════════════════════ */
+
 .fap-section {
   min-height: 100vh;
   display: flex;
@@ -5,48 +9,154 @@
   justify-content: center;
   position: relative;
   width: 100%;
+  overflow: hidden;
 }
 
+/* ── CLASSIFIED stamp ───────────────────────────── */
 .fap-stamp {
   position: absolute;
   top: 50%;
   left: 50%;
-  /* translate(-50%, -50%) will be set by GSAP using xPercent/yPercent */
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 4rem;
+  font-size: 4.5rem;
+  letter-spacing: 0.15em;
   color: #ef4444;
+  border: 6px solid #ef4444;
+  padding: 4px 20px;
   pointer-events: none;
   z-index: 10;
+  opacity: 0;
+  transform-origin: center;
+  text-transform: uppercase;
+  /* rough stamp texture */
+  filter: contrast(1.2) saturate(1.3);
 }
 
+/* ── Main layout ─────────────────────────────────── */
 .fap-content {
   display: flex;
-  width: min(900px, 90vw);
-  gap: 60px;
-  opacity: 0; /* JS controls */
+  width: min(960px, 90vw);
+  gap: 64px;
+  opacity: 0;
 }
 
+/* ── LEFT: photo column ──────────────────────────── */
 .fap-left {
-  width: 38%;
+  width: 36%;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
-.fap-photo {
+/* Photo frame with animated corner brackets */
+.fap-photo-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border: 1px solid rgba(238,241,247,0.15);
-  border-radius: 0;
-  filter: grayscale(1);
+  overflow: hidden;
 }
 
+/* Actual photo */
+.fap-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  filter: grayscale(1) contrast(1.05);
+  transition: filter 1.2s ease;
+}
+
+/* Scanline overlay — always on, subtle */
+.fap-photo-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.07) 0px,
+    rgba(0,0,0,0.07) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Animated scanner sweep line */
+.fap-scanner {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(74,222,128,0.4) 20%,
+    rgba(74,222,128,0.9) 50%,
+    rgba(74,222,128,0.4) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 12px 3px rgba(74,222,128,0.35);
+  z-index: 4;
+  pointer-events: none;
+  top: 0;
+}
+
+/* Corner bracket corners */
+.fap-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0; /* GSAP reveals */
+}
+.fap-corner--tl { top: 0;    left: 0;
+  border-top: 2px solid #4ade80; border-left: 2px solid #4ade80; }
+.fap-corner--tr { top: 0;    right: 0;
+  border-top: 2px solid #4ade80; border-right: 2px solid #4ade80; }
+.fap-corner--bl { bottom: 0; left: 0;
+  border-bottom: 2px solid #4ade80; border-left: 2px solid #4ade80; }
+.fap-corner--br { bottom: 0; right: 0;
+  border-bottom: 2px solid #4ade80; border-right: 2px solid #4ade80; }
+
+/* Glitch overlay for hover */
+.fap-photo-glitch {
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* ID-card label overlay at bottom */
+.fap-photo-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: rgba(5,6,10,0.8);
+  backdrop-filter: blur(4px);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: rgba(238,241,247,0.55);
+  text-transform: uppercase;
+  z-index: 5;
+  border-top: 1px solid rgba(74,222,128,0.25);
+  opacity: 0; /* GSAP reveals */
+}
+
+/* Status bar beneath photo */
 .fap-status-bar {
-  background: rgba(238,241,247,0.04);
-  border: 1px solid rgba(238,241,247,0.1);
+  background: rgba(74,222,128,0.04);
+  border: 1px solid rgba(74,222,128,0.2);
   border-top: none;
-  padding: 10px 14px;
+  padding: 9px 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -54,18 +164,38 @@
 
 .fap-status-dot {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: #4ade80;
+  letter-spacing: 0.08em;
+}
+
+.fap-status-pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  margin-right: 8px;
+  box-shadow: 0 0 8px #4ade80;
+  animation: status-pulse 1.8s ease-in-out infinite;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+@keyframes status-pulse {
+  0%,100% { opacity: 1; transform: scale(1);   box-shadow: 0 0 8px  #4ade80; }
+  50%      { opacity: .6; transform: scale(.8); box-shadow: 0 0 16px #4ade80; }
 }
 
 .fap-time {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: #8891a6;
 }
 
+/* ── RIGHT: data column ──────────────────────────── */
 .fap-right {
-  width: 62%;
+  width: 64%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -73,57 +203,82 @@
 
 .fap-eyebrow {
   font-family: 'DM Mono', monospace;
-  font-weight: 400;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
   color: #ef4444;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  opacity: 0; /* stagger in */
 }
 
 .fap-name {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: clamp(2.2rem, 4.5vw, 3.5rem);
   color: #eef1f7;
-  margin-bottom: 6px;
-  margin-top: 0;
+  line-height: 1.0;
+  margin: 0 0 10px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Glitch pseudo layer on name */
+.fap-name::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: #4ade80;
+  clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  transform: translateX(0);
+  opacity: 0;
+  animation: name-glitch 6s steps(1) infinite;
+}
+
+@keyframes name-glitch {
+  0%,89%,100%  { opacity: 0;  transform: translateX(0); }
+  90%          { opacity: .7; transform: translateX(-4px); }
+  92%          { opacity: 0;  transform: translateX(0); }
+  94%          { opacity: .5; transform: translateX(6px); }
+  96%          { opacity: 0; }
 }
 
 .fap-designation {
   font-family: 'Cabinet Grotesk', sans-serif;
-  font-weight: 400;
   font-size: 1rem;
   color: #8891a6;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
+  opacity: 0;
 }
 
 .fap-divider {
   border: none;
   border-top: 1px solid rgba(238,241,247,0.08);
-  margin: 0 0 28px 0;
-  width: 100%;
+  margin: 0 0 0;
+  width: 0%;  /* GSAP expands to 100% */
+  transition: none;
 }
 
-.fap-data-rows {
-  display: flex;
-  flex-direction: column;
-}
+/* ── Data rows ───────────────────────────────────── */
+.fap-data-rows { display: flex; flex-direction: column; margin-bottom: 8px; }
 
 .fap-row {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(238,241,247,0.06);
-  padding: 13px 0;
   align-items: center;
+  border-bottom: 1px solid rgba(238,241,247,0.06);
+  padding: 12px 0;
+  opacity: 0;         /* stagger in via GSAP */
+  transform: translateX(20px);
 }
 
 .fap-label {
   font-family: 'DM Mono', monospace;
-  font-weight: 400;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(238,241,247,0.3);
+  letter-spacing: 0.12em;
+  color: rgba(238,241,247,0.28);
+  flex-shrink: 0;
 }
 
 .fap-value {
@@ -134,57 +289,50 @@
   text-align: right;
 }
 
+/* ── Links ───────────────────────────────────────── */
 .fap-links {
   margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  opacity: 0;
 }
 
 .fap-link-download {
   font-family: 'DM Mono', monospace;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #ffb454;
   text-decoration: none;
   border-bottom: 1px solid rgba(255,180,84,0.4);
   padding-bottom: 3px;
-  margin-right: 28px;
-  display: inline-block;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s;
 }
-
-.fap-link-download:hover {
-  opacity: 0.8;
-}
+.fap-link-download:hover { opacity: 0.75; }
 
 .fap-link-linkedin {
   font-family: 'DM Mono', monospace;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #8891a6;
   text-decoration: none;
-  display: inline-block;
-  transition: color 0.2s ease;
+  transition: color 0.2s;
 }
+.fap-link-linkedin:hover { color: #eef1f7; }
 
-.fap-link-linkedin:hover {
-  color: #eef1f7;
-}
-
+/* ── Responsive ──────────────────────────────────── */
 @media (max-width: 768px) {
   .fap-content {
     flex-direction: column;
-    gap: 40px;
+    gap: 36px;
     padding: 60px 0;
   }
-  .fap-left, .fap-right {
-    width: 100%;
-  }
-  .fap-stamp {
-    font-size: 2.5rem;
-  }
+  .fap-left, .fap-right { width: 100%; }
+  .fap-photo-wrap { max-width: 260px; margin: 0 auto; }
+  .fap-stamp { font-size: 2.5rem; }
   .fap-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  .fap-value {
-    text-align: left;
-  }
+  .fap-value { text-align: left; }
+  .fap-name { font-size: clamp(2rem, 10vw, 2.8rem); }
 }
