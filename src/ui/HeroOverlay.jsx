@@ -10,17 +10,17 @@ const PARTICLES = Array.from({ length: 8 }, (_, i) => {
   return {
     id: i,
     orbitRadius: 65 + a * 115,   // 65 – 180 px
-    duration:    3  + b * 6,     // 3  – 9  s per orbit
-    size:        1  + c * 2,     // 1  – 3  px
-    delay:       -(i / 8),       // fraction; multiplied by duration for real delay
-    opacity:     0.2 + a * 0.2,  // 0.2 - 0.4 max
+    duration: 3 + b * 6,     // 3  – 9  s per orbit
+    size: 1 + c * 2,     // 1  – 3  px
+    delay: -(i / 8),       // fraction; multiplied by duration for real delay
+    opacity: 0.2 + a * 0.2,  // 0.2 - 0.4 max
   };
 });
 
 // ── Left side serif lines ──────────────────────────────────────────────────
 const SERIF_LINES = [
-  'I write Java,',
-  'play basketball,',
+  'I write Code,',
+  'play Basketball,',
   'and pretend my poetry',
   'is intellectual.',
 ];
@@ -45,36 +45,36 @@ const INFO_ITEMS = [
  */
 export default function HeroOverlay({ opacity }) {
   // ── Refs ──────────────────────────────────────────────────────────────────
-  const sunWrapRef  = useRef(null);
+  const sunWrapRef = useRef(null);
   const topLayerRef = useRef(null);
-  const rafRef      = useRef(null);
-  const mouseRef    = useRef({ x: 0, y: 0 });
-  const lerpState   = useRef({ sunX: 0, sunY: 0, titleX: 0, titleY: 0 });
+  const rafRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const lerpState = useRef({ sunX: 0, sunY: 0, titleX: 0, titleY: 0 });
 
   // ── State ─────────────────────────────────────────────────────────────────
-  const [typed,        setTyped]        = useState('');
-  const [cursorOn,     setCursorOn]     = useState(true);
-  const [typingDone,   setTypingDone]   = useState(false);
+  const [typed, setTyped] = useState('');
+  const [cursorOn, setCursorOn] = useState(true);
+  const [typingDone, setTypingDone] = useState(false);
   // left-side serif lines visibility
-  const [linesVis,     setLinesVis]     = useState(SERIF_LINES.map(() => false));
+  const [linesVis, setLinesVis] = useState(SERIF_LINES.map(() => false));
   // right-side info + pills visibility
-  const [infoVis,      setInfoVis]      = useState(INFO_ITEMS.map(() => false));
-  const [pillsVis,     setPillsVis]     = useState(coreIdentity.focus.map(() => false));
+  const [infoVis, setInfoVis] = useState(INFO_ITEMS.map(() => false));
+  const [pillsVis, setPillsVis] = useState(coreIdentity.focus.map(() => false));
 
   // ── Mouse parallax + sun-proximity ───────────────────────────────────────
   useEffect(() => {
     const lerp = (a, b, t) => a + (b - a) * t;
 
     const onMouse = (e) => {
-      mouseRef.current.x = e.clientX - window.innerWidth  / 2;
+      mouseRef.current.x = e.clientX - window.innerWidth / 2;
       mouseRef.current.y = e.clientY - window.innerHeight / 2;
 
       // Proximity detection — DOM mutation, avoids React re-render every frame
       const sun = sunWrapRef.current;
       if (sun) {
-        const r    = sun.getBoundingClientRect();
-        const cx   = r.left + r.width  / 2;
-        const cy   = r.top  + r.height / 2;
+        const r = sun.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
         const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
         const near = dist < 200;
         sun.classList.toggle('hero-sun-wrap--near', near);
@@ -85,8 +85,8 @@ export default function HeroOverlay({ opacity }) {
       const s = lerpState.current;
       const m = mouseRef.current;
 
-      s.sunX   = lerp(s.sunX,   m.x *  0.08, 0.06);
-      s.sunY   = lerp(s.sunY,   m.y *  0.08, 0.06);
+      s.sunX = lerp(s.sunX, m.x * 0.08, 0.06);
+      s.sunY = lerp(s.sunY, m.y * 0.08, 0.06);
       s.titleX = lerp(s.titleX, m.x * -0.02, 0.06);
       s.titleY = lerp(s.titleY, m.y * -0.02, 0.06);
 
@@ -192,14 +192,14 @@ export default function HeroOverlay({ opacity }) {
             className="hero-orbit"
             style={{
               animationDuration: `${p.duration}s`,
-              animationDelay:    `${p.delay * p.duration}s`,
+              animationDelay: `${p.delay * p.duration}s`,
             }}
           >
             <span
               className="hero-orbit-dot"
               style={{
-                left:   `${p.orbitRadius}px`,
-                width:  `${p.size}px`,
+                left: `${p.orbitRadius}px`,
+                width: `${p.size}px`,
                 height: `${p.size}px`,
                 opacity: p.opacity,
                 boxShadow: `0 0 ${p.size * 3}px ${p.size}px rgba(255,170,51,0.55)`,
@@ -209,7 +209,7 @@ export default function HeroOverlay({ opacity }) {
         ))}
 
         {/* Corona rings — staggered pulse outward */}
-        <div className="hero-corona" style={{ animationDelay:  '0s'  }} />
+        <div className="hero-corona" style={{ animationDelay: '0s' }} />
         <div className="hero-corona" style={{ animationDelay: '-0.83s' }} />
         <div className="hero-corona" style={{ animationDelay: '-1.67s' }} />
 
@@ -222,6 +222,11 @@ export default function HeroOverlay({ opacity }) {
 
       {/* ── LEFT panel: Serif personality lines ────────────────────────── */}
       <div className="hero-side-left" aria-label="Personal tagline">
+        {/* Decorative open-quote glyph */}
+        <span
+          className={`hero-serif-quote${linesVis[0] ? ' hero-serif-quote--vis' : ''}`}
+          aria-hidden="true"
+        >&#8220;</span>
         {SERIF_LINES.map((line, i) => (
           <span
             key={i}
@@ -236,6 +241,12 @@ export default function HeroOverlay({ opacity }) {
       {/* ── RIGHT panel: Info + pills ──────────────────────────────────── */}
       <div className="hero-side-right" aria-label="Education and focus areas">
 
+        {/* Section label */}
+        <span className={`hero-right-label${infoVis[0] ? ' hero-right-label--vis' : ''}`}>
+          <span className="hero-right-label-dot" aria-hidden="true" />
+          FIELD&nbsp;LOG
+        </span>
+
         {/* B.Tech info cluster */}
         <div className="hero-info-cluster">
           {INFO_ITEMS.map((item, i) => (
@@ -244,6 +255,7 @@ export default function HeroOverlay({ opacity }) {
               className={`hero-info-item${infoVis[i] ? ' hero-info-item--vis' : ''}`}
               style={{ transitionDelay: `${i * 0.1}s` }}
             >
+              <span className="hero-info-glyph" aria-hidden="true">›</span>
               {item}
             </span>
           ))}
@@ -257,6 +269,8 @@ export default function HeroOverlay({ opacity }) {
               className={`hero-side-pill${pillsVis[i] ? ' hero-side-pill--vis' : ''}`}
               style={{ transitionDelay: `${i * 0.1}s` }}
             >
+              <span className="hero-pill-shimmer" aria-hidden="true" />
+              <span className="hero-pill-dot" aria-hidden="true" />
               {f}
             </span>
           ))}
