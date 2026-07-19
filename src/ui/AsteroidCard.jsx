@@ -453,7 +453,10 @@ export default function AsteroidCard() {
           ref={(el) => (cardElemsRef.current[i] = el)}
           style={{ "--accent-color": CARD_COLORS[i] || ach.color, opacity: 0 }}
         >
-          <div className="mission-content">
+          <div
+            className="mission-content"
+            data-scrollable={(ach.id === 'tech-certs' || ach.id === 'legacy') ? 'true' : 'false'}
+          >
             <div className="mission-number">MISSION {String(i+1).padStart(2,"0")}</div>
 
             <h2

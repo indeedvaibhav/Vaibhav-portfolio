@@ -144,6 +144,23 @@
   max-width: 420px;
 }
 
+/* Wide panel override for card-grid missions (08 tech-certs, 09 legacy) */
+.mission-content[data-scrollable="true"] {
+  justify-content: flex-start;
+  padding-top: 12vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* hide scrollbar visually but keep functionality */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  pointer-events: auto; /* allow scroll inside the panel */
+}
+.mission-content[data-scrollable="true"]::-webkit-scrollbar { display: none; }
+
+.mission-content[data-scrollable="true"] .mission-panel {
+  max-width: 100%;  /* let the grid use full column width */
+}
+
 .mission-hr {
   width: 100%;
   height: 1px;
